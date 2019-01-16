@@ -1,6 +1,8 @@
 import re
 
 
+# These string constants can be used for build regexes.
+
 REDASHSET = r'[\u2012-\u2015\u002D]'
 REDASH = r'\u2012\u2013\u2014\u2015\u002D'
 REELLIPSIS = r'[\u2026\u22EF\u1801]|(?:\.)(?!\.)|(?:\.\.)(?!\.)|(?:\.\.\.)'
@@ -52,3 +54,35 @@ def tokenize(sentence):
         RETOKENS = re.compile(RETOKENS)
 
     return RETOKENS.findall(sentence)
+
+
+def groupEndings(words):
+    """Group words by similar engings, i.e. just sort list by strings by its
+    last characters. Example:
+
+    List:       Sorted list:        Look at the endings.
+    bite        mike
+    chiefly     nike
+    fastly      bite
+    mike        namely
+    namely      chiefly
+    nike        fastly
+
+    Args:
+        words (list): List of words.
+
+    Returns:
+        list: List of grouped words.
+
+    """
+
+    def rotate(li: list):
+        """Returns list with inverted strings.
+        """
+        return [s[::-1] for s in li]
+
+    return rotate(
+        sorted(
+            rotate(words)
+        )
+    )
