@@ -14,6 +14,13 @@ import sys
 class Params:
     """This class contains methods to deal with parameters user are passing to
     script.
+
+    Properties:
+        bundle (list): List of parameters.
+
+    Raises:
+        TypeError: Something wrond with parameters, can't read it correctly.
+
     """
 
     def __init__(self):
@@ -31,7 +38,7 @@ class Params:
                     params[sys.argv[i]] = True
                 i += 1
         except Exception as e:
-            raise RuntimeError(
+            raise TypeError(
                 "There's an mistake in your parameters. Use --parametername "
                 "<value> to pass a value or -paramname to set something to "
                 "True."

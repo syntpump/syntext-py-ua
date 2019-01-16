@@ -24,6 +24,10 @@ class DB:
         Returns:
             MongoClient: Connection to database provided by pymongo lib.
 
+        Raises:
+            EnvironmentError: Some of environment variables, which contains
+                credentials, are missing, so that connection is impossible.
+
         """
 
         if host == 'atlas':
@@ -32,7 +36,7 @@ class DB:
             hosturl = os.getenv('SYNTEXTDBHOST')
 
             if not login or not password or not hosturl:
-                raise RuntimeError(
+                raise EnvironmentError(
                     'No credentials found. Make sure that SYNTEXTDBLOG, '
                     'SYNTEXTDBPWD and SYNTEXTDBHOST environment variables ',
                     'is provided.'
