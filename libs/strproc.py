@@ -12,8 +12,8 @@ RECOLONS = r'[:;]'
 REQUOT = r'[\u2018\u2019\u201C\u201D\u0022]'
 RESLASH = r'[\u002F\u005C\u007C\u00A6]'
 REPUNCT = (
-    rf'{REDASHSET}|{REELLIPSIS}|{REMARKS}|{REQUOT}|{RECOLONS}|{RESLASH}|'
-    rf'{REBRACKETS}'
+    fr'{REDASHSET}|{REELLIPSIS}|{REMARKS}|{REQUOT}|{RECOLONS}|{RESLASH}|'
+    fr'{REBRACKETS}'
 )
 RESPACE = r'[\u2003\u2002\u0020]'
 # List of symbols that often occurs near the decimals (e.g "±5%"")
@@ -24,6 +24,11 @@ RENUMSEP = rf'{REELLIPSIS}|{REDASHSET}|{RECOLONS}|{RESLASH}|{REMATH}'
 RECURRENCY = r'[\u20A0-\u20CF\u00A2-\u00A5\u0024]'
 # List of all ukrainian symbols
 RECYRRUA = r'[А-ЩЬЮ-щьюяіїґєІЇҐЄ]'
+RETOKENS = (
+    fr'(?:\d+{RENUMSEP}\d+)'
+    fr'|(?:{RENUM}*{RECURRENCY}*\d+{RECURRENCY}*{RENUM}*)|'
+    fr'{REPUNCT}|[\w{REDASH}\u0301]+'
+)
 
 
 def tokenize(sentence):
@@ -35,11 +40,15 @@ def tokenize(sentence):
     Returns:
         list: List of tokens.
 
-    """
-    retokens = re.compile(
-        fr'(?:\d+{RENUMSEP}\d+)'
-        fr'|(?:{RENUM}*{RECURRENCY}*\d+{RECURRENCY}*{RENUM}*)|'
-        fr'{REPUNCT}|[\w{REDASH}\u0301]+'
-    )
+    Globals:
+        RETOKENS: This function using RETOKENS which may be string at first and
+            converts it to compiled regex, so no compiling may be needed in
+            future.
 
-    return retokens.findall(sentence)
+    """
+
+    global RETOKENS
+    if type(RETOKENS) is str:
+        RETOKENS = re.compile(RETOKENS)
+
+    return RETOKENS.findall(sentence)
