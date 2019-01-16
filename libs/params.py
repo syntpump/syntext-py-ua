@@ -46,7 +46,7 @@ class Params:
 
         self.bundle = params
 
-    def get(self, name, default=False):
+    def get(self, name, default=None):
         """Returns some parameter from self.bundle if it exists. If not, returns
         'default' parameter.
 
@@ -55,7 +55,8 @@ class Params:
             default (*): Content you expect by default.
 
         Returns:
-            str: Value of parameter you'd requested.
+            str: Value of parameter you'd requested. If no such parameter
+                specified, than None will be returned.
 
         """
 

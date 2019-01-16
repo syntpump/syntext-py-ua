@@ -285,7 +285,17 @@ class conlluReader:
 
     def get(self, attribute, default=None):
         """Look for some property, defined in the comment, at the beggining of
-        the file. (E.g., "newdoc id" or "doc_tittle")
+        the file. (E.g., "newdoc id" or "doc_tittle").
+
+        Args:
+            attribute (str): Name of attribute you want to get.
+            default (*): Data that will be returned if not such attribute
+                specified.
+
+        Return:
+            str: Parameter you'd requested. If no such parameter specified,
+                None will be returned.
+
         """
 
         # Remember current position.
