@@ -400,11 +400,14 @@ class DB:
 
         Unique keys will be merged without any changes, but common keys will
         be merged due to its type:
-        int    Find average
-        set    Unite them
-        dict   Merge keys
-        str    Concatenate without glue
-        list   Concatenate
+        int        Find average
+        float      Find average
+        complex    Find average
+        bool       A and B
+        set        Unite them
+        dict       Merge keys
+        str        Concatenate without glue
+        list       Concatenate, delete duplicates
 
         Args:
             document1 (dict): First document.
@@ -430,8 +433,11 @@ class DB:
             # It's the common key
             else:
                 # Assume that type of document1[key] == document2[key]
-                if type(document1[key]) is int:
+                if type(document1[key]) in [int, float, complex]:
                     merged[key] = (document1[key] + document2[key]) / 2
+
+                elif type(document1[key]) is bool:
+                    merged[key] = document1[key] and document2[key]
 
                 elif type(document1[key]) is str:
                     merged[key] = document1[key] + document2[key]
@@ -444,6 +450,8 @@ class DB:
 
                 elif type(document1[key]) is list:
                     merged[key] = document1[key] + document2[key]
+                    # Unduplicate list
+                    merged[key] = list(set(merged[key]))
 
                 keys2.remove(key)
 
