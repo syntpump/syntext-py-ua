@@ -217,6 +217,22 @@ class DB:
             "name": name
         })
 
+    def substitute(self, what, by):
+        """Move one collection into place of another.
+        1. 'by'.name = 'what'.name;
+        2. Delete 'what';
+
+        Args:
+            what (str): Name of collection that should be deleted.
+            by (str): Name of collection that will be renamed.
+
+        """
+
+        what = self.cli.get_collection(what)
+        name = what.name
+        what.drop()
+        self.cli.get_collection(by).rename(name)
+
     def compareCollections(
         self, first, second, field, compareFunc, findUnique2=True
     ):
@@ -224,6 +240,10 @@ class DB:
         "document from second collection", which field has the same value, and
         add the result of execution to a list.
         Returns that list, unique elements from first and second collections.
+
+        ! You can also use a static function mergeDocuments(dict document1,
+        dict document2) as compareFunc from this class in order to merge every
+        property of two given documents.
 
         Scheme of calling compareFunc():
             collection3.append(
@@ -314,6 +334,126 @@ class DB:
             "unique1": unique1,
             "unique2": unique2
         }
+
+    def mergeCollections(
+        self, first, second, uniqueField, compareFunc, newName=None,
+        saveUnique1=True, saveUnique2=True, deleteThem=True
+    ):
+        """Merge two collections into new one. You need to provide a name of
+        field which will be used as key field and compare function as in
+        compareCollections() (see for docs there).
+
+        ! Note, that inserting elements must not contain field "_id", as it's
+        reserved by pymongo for unique key.
+
+        ! You can also use a static function mergeDocuments(dict document1,
+        dict document2) as compareFunc from this class in order to merge every
+        property of two given documents.
+
+        Args:
+            first (str): Name of first collection.
+            second (str): Name of second collection.
+            uniqueField (str): Name of field by which two equal documents
+                (candidates for merging) will be found.
+            newName (str): Name of new merged collection. If this parameter is
+                unspecified, new name will be generated:
+                merged_{time}_{name1}_{name2}
+            saveUnique1 (bool): Set to False in order to delete all unique
+                documents from first collection; set to True to save them.
+            saveUnique2 (bool): Just like 'saveUnique1', but for the second
+                collection.
+            deleteThem (bool): Delete two collections after merging. Is True
+                by default.
+
+        Returns:
+            Collection: New merged collection.
+
+        """
+
+        comparing = self.compareCollections(
+            first, second, uniqueField, compareFunc, findUnique2=True
+        )
+
+        if not newName:
+            newName = f"merged_{time.time()}:{first},{second}"
+
+        merged = self.cli.create_collection(newName)
+
+        merged.insert_many(comparing["third"])
+
+        if saveUnique1:
+            merged.insert_many(comparing["unique1"])
+
+        if saveUnique2:
+            merged.insert_many(comparing["unique2"])
+
+        if deleteThem:
+            self.get_collection(first).drop()
+            self.get_collection(second).drop()
+
+        return merged
+
+    @staticmethod
+    def mergeDocuments(document1, document2):
+        """Merge properties of two documents. Can be used as compareFunc in
+        mergeCollections and compareCollections.
+
+        Unique keys will be merged without any changes, but common keys will
+        be merged due to its type:
+        int    Find average
+        set    Unite them
+        dict   Merge keys
+        str    Concatenate without glue
+        list   Concatenate
+
+        Args:
+            document1 (dict): First document.
+            document2 (dict): Second document.
+
+        Returns:
+            dict: Merged document.
+
+        """
+
+        keys1 = list(document1.keys())
+        keys2 = list(document2.keys())
+
+        merged = dict()
+
+        for key in keys1:
+            # Inserting document must not contain "_id" field
+            if key == "_id":
+                continue
+            # It's the unique key from first document
+            if key not in keys2:
+                merged[key] = document1[key]
+            # It's the common key
+            else:
+                # Assume that type of document1[key] == document2[key]
+                if type(document1[key]) is int:
+                    merged[key] = (document1[key] + document2[key]) / 2
+
+                elif type(document1[key]) is str:
+                    merged[key] = document1[key] + document2[key]
+
+                elif type(document1[key]) is dict:
+                    merged[key] = {**document1[key], **document2[key]}
+
+                elif type(document1[key]) is set:
+                    merged[key] = document1[key] | document2[key]
+
+                elif type(document1[key]) is list:
+                    merged[key] = document1[key] + document2[key]
+
+                keys2.remove(key)
+
+        # Unique keys from second document
+        for key in keys2:
+            if key == "_id":
+                continue
+            merged[key] = document2[key]
+
+        return merged
 
     def close(self):
         """Cleanup client resources and disconnect from MongoDB.
