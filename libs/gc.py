@@ -20,6 +20,9 @@ class conlluReader:
             used to separate sentences.
         file (_io.TextIOWrapper): Opened file.
         ignoreComments (bool): Set this True in order to ignore comment lines.
+        strict (bool): Set this to True in order to allow 'id', 'upos',
+            'head', 'deprel' fields be unspecified, 'form' and 'lemma' fields
+            to contain space characters and let some fields be empty.
         cursor (int): Pointer to the current line.
 
     """
@@ -29,13 +32,17 @@ class conlluReader:
     DATALINE = 1
     BLANKLINE = 2
 
-    def __init__(self, filepath=None, ignoreComments=False):
+    def __init__(self, filepath=None, ignoreComments=False, strict=True):
         """Open the file for parsing and set cursor to 0.
 
         Args:
             filepath (str): Path to a file you want to read.
             ignoreComments (bool): When this variable is set to True,
                 nextLine() method will ignore lines staring with '#'.
+            strict (bool): Set this to True in order to allow 'id', 'upos',
+                'head', 'deprel' fields be unspecified, 'form' and 'lemma'
+                fields to contain space characters and let some fields be
+                empty.
 
         Raises:
             TypeError: The path to file was not given.
@@ -52,6 +59,7 @@ class conlluReader:
         self.file = open(filepath, mode='r', encoding="utf-8")
         self.ignoreComments = ignoreComments
         self.cursor = 0
+        self.strict = strict
 
     def rewind(self):
         """Move reading cursor to the beginning.
@@ -214,25 +222,27 @@ class conlluReader:
 
             field = fields[i]
 
-            if not value or value == ' ':
-                raise TypeError(
-                    f"The '{field}' field field is missing at "
-                    f"{self.cursor} line in {self.file.name}."
-                )
+            if self.strict:
 
-            if ' ' in value and field in ['form', 'lemma']:
-                raise TypeError(
-                    f"Fields other than 'form' and 'lemma' must not contain "
-                    f"space characters. Error at {self.cursor} line in "
-                    f"{self.file.name}."
-                )
+                if not value or value == ' ':
+                    raise TypeError(
+                        f"The '{field}' field field is missing at "
+                        f"{self.cursor} line in {self.file.name}."
+                    )
 
-            if value == '_' and field in ['id', 'upos', 'head', 'deprel']:
-                raise TypeError(
-                    f"Fields 'id', 'upos', 'head', 'deprel' cannot be "
-                    f"unspecified. Error at {self.cursor} line in "
-                    f"{self.file.name}."
-                )
+                if ' ' in value and field in ['form', 'lemma']:
+                    raise TypeError(
+                        f"Fields other than 'form' and 'lemma' must not "
+                        f"contain space characters. Error at {self.cursor} "
+                        f"line in {self.file.name}."
+                    )
+
+                if value == '_' and field in ['id', 'upos', 'head', 'deprel']:
+                    raise TypeError(
+                        f"Fields 'id', 'upos', 'head', 'deprel' cannot be "
+                        f"unspecified. Error at {self.cursor} line in "
+                        f"{self.file.name}."
+                    )
 
             if field == 'feats':
                 value = self.parseFeats(value)
