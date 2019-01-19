@@ -39,3 +39,23 @@ def unduplicate(words):
     return list(
         set(words)
     )
+
+
+def reorder(li: list, a: int, b: int):
+    """Reorder li[a] with li[b].
+
+    Args:
+        li (list): List to process.
+        a (int): Index of first item.
+        b (int): Index of second item.
+
+    Returns:
+        list: List of reordered items.
+
+    Example:
+        >>> reorder([a, b, c], 0, 1)
+        <<< [b, a, c]
+
+    """
+    li[a], li[b] = li[b], li[a]
+    return li

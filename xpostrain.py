@@ -1,6 +1,9 @@
 from libs.params import Params
-from libs.arrproc import unduplicate, keyExtract
+from libs.arrproc import unduplicate, keyExtract, reorder
 from libs.strproc import groupEndings
+from libs.logs import Logger
+from libs.gc import ConlluReader
+from difflib import SequenceMatcher
 
 
 argv = Params()
@@ -22,6 +25,8 @@ Name            Default     Description
 --path ...      *requiered  Path to Universal Dependencies file.
 --limit ...     0           Limit of tokens to be processed. Can be used for
                             testing script. Pass '0' to set it to infinite.
+--max_common ...4           Maximum allowed intersection length.
+--min_rule ...  2           Minimum allowed length of rule to be added to DB.
 -test           False       Do not upload any data to dbhost.
 """ # noqa E122
     )
@@ -32,8 +37,7 @@ if not argv.has("--path"):
 
 
 from libs.db import DB # noqa E402
-from libs.logs import Logger # noqa E402
-from libs.gc import ConlluReader # noqa E402
+
 
 udfile = ConlluReader(
     filepath=str(argv.get("--path")),
@@ -64,6 +68,14 @@ STATICPOS = ["ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "SCONJ",
 # POSes which can be recognized automatically, skip them.
 IGNOREPOS = ["SYM", "X"]
 
+# If the word cause too many intersections, then maybe we're comparing two
+# words with the same roots. Here's the number of maximum allowed intersection
+# length. Tokens with larger matched will be reordered with the next token.
+MAXIMUM_INTERSECTION = argv.get("--max_common", default=4)
+
+# Allowed minimum of length of rule to be added to rules set.
+MINIMUM_RULE_LENGTH = argv.get("--min_rule", default=2)
+
 # Collecting UPOS and XPOS while iterating.
 poses = set()
 
@@ -90,8 +102,10 @@ try:
             "form": line["data"]["form"].lower()
         })
 except EOFError:
+    pass
+finally:
     print(
-        f"\nReached end of the file, collected {len(poses)} XPOSes."
+        f"\nReached end of the file, collected {len(poses)} XPOSes. "
         "Iterating over them...\n"
         "XPOS           Found   Common length   Exceptions"
     )
@@ -102,6 +116,46 @@ maindb = DB(
 )
 
 maincoll = maindb.createCollection(maindb.XPOSTRAIN)
+
+
+def lookForIntersections(tokens: list):
+    """ Intersect all the tokens in list and return its common part. Look for
+    exceptions too.
+
+    Args:
+        tokens (list): List of tokens.
+
+    Returns:
+        dict: Dict with result and exceptions.
+
+    Example of tokens:
+        ["intersection", "intvention", "invent"]
+
+    Example of result:
+        {
+            "result": "tion",
+            "exceptions": ["invent"]
+        }
+
+    """
+    base = tokens[0]
+    exceptions = []
+
+    for token in tokens[1:]:
+        matcher = SequenceMatcher(a=base, b=token)
+        match = matcher.find_longest_match(
+            0, len(base), 0, len(token)
+        )
+        if match.size > 0:
+            base = base[match.a:match.a + match.size]
+        else:
+            exceptions.append(token)
+
+    return {
+        "result": base,
+        "exceptions": exceptions
+    }
+
 
 for upos, xpos in poses:
 
@@ -138,6 +192,85 @@ for upos, xpos in poses:
 
     tokens = groupEndings(tokens)
 
-# tempcoll.drop()
+    exceptions = []
+    rules = set()
+
+    exceptionsLength = len(tokens)
+    print(">tokens")
+    print(tokens)
+    # Loop through 'exceptions' while they're still appearing
+    while True:
+        print("tokens")
+        print(tokens)
+        print("rules")
+        print(rules)
+
+        if len(tokens) == 0:
+            break
+
+        commons = lookForIntersections(tokens)
+
+        # If the word cause too many intersections, then maybe we're comparing
+        # two words with the same roots. Just skip it.
+        if len(commons["result"]) > MAXIMUM_INTERSECTION:
+            reorder(tokens, 0, 1)
+            print(
+                "{0:<15}{1:<8}Reordering occured."
+            )
+            continue
+
+        # If there's no intersections, then put it to exceptions.
+        if len(commons["result"]) == 0:
+            print(
+                "{0:<15}{1:<8}New exception occured."
+            )
+            exceptions.append(
+                tokens.pop(0)
+            )
+            continue
+
+        print(
+            "{0:<15}{1:<8}".format(
+                xpos, len(tokens),
+                len(commons["result"]), len(commons["exceptions"])
+            )
+        )
+
+        # Do not add too short rules.
+        if len(commons["result"]) > MINIMUM_RULE_LENGTH:
+            rules.add(commons["result"])
+
+        if len(commons["exceptions"]) < 2:
+            break
+
+        tokens = commons["exceptions"]
+
+        # The further processing has no sense because number of exceptions are
+        # not decreasing
+        if len(tokens) >= exceptionsLength:
+            break
+
+        # Remember the number of generated exceptions in order to compare it at
+        # the next iteration.
+        exceptionsLength = len(tokens)
+
+    if len(exceptions) != 0:
+        maincoll.insert_one({
+            "xpos": xpos,
+            "upos": upos,
+            "type": "exceptions",
+            "data": exceptions
+        })
+
+    if len(rules) != 0:
+        maincoll.insert_one({
+            "xpos": xpos,
+            "upos": upos,
+            "type": "rules",
+            "data": list(rules)
+        })
+
+
+tempcoll.drop()
 tempdb.close()
 maindb.close()
