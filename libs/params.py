@@ -68,9 +68,34 @@ class Params:
         Args:
             name (str): Name of parameter.
 
-        Return:
+        Returns:
             bool: Is parameter exists in self.bundle?
 
         """
 
         return name in self.bundle
+
+    def request(self, name, text):
+        """Show a text to user and require some data to input. That data will
+        be put to self.bundle then.
+
+        Args:
+            name (str): Name of data (parameter) you're requesting.
+            text (str): A little description user will see.
+
+        Returns:
+            str: Some data user had typed.
+
+        STDOUT:
+            Prints a message:
+            {text}:
+
+        STDIN:
+            Grab the inputted data.
+
+        """
+
+        print(text, end=": ")
+        data = input()
+        self.bundle[name] = data
+        return data
