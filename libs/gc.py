@@ -9,7 +9,7 @@ be given access to nextLine() and nextSentence() methods.
 """
 
 
-class conlluReader:
+class ConlluReader:
     """Use this class to read and parse Universal Dependencies data in CoNLL-U
     format.
 
@@ -184,7 +184,7 @@ class conlluReader:
                 # Lines like: "# newdoc id = abracadabra\n" will be converted
                 # to the following dict:
                 # {
-                #     "type": conlluReader.COMMENTLINE,
+                #     "type": ConlluReader.COMMENTLINE,
                 #     "data": {
                 #         "newdoc id": "abracadabra"
                 #     }
