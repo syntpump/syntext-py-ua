@@ -204,7 +204,7 @@ class DB:
         ))
 
         for name in temps:
-            self.cli.drop(name)
+            self.drop(name)
 
         return temps
 

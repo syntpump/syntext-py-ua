@@ -26,6 +26,7 @@ Name            Default     Description
 --limit ...     0           Limit of tokens to be processed. Can be used for
                             testing script. Pass '0' to set it to infinite.
 --max_common ...4           Maximum allowed intersection length.
+--min_common ...2           Minimum allowed intersection length.
 --min_rule ...  2           Minimum allowed length of rule to be added to DB.
 -test           False       Do not upload any data to dbhost.
 """ # noqa E122
@@ -72,6 +73,11 @@ IGNOREPOS = ["SYM", "X"]
 # words with the same roots. Here's the number of maximum allowed intersection
 # length. Tokens with larger matched will be reordered with the next token.
 MAXIMUM_INTERSECTION = argv.get("--max_common", default=4)
+
+# Sometimes two words with different morphology have very small common parts.
+# E.g., 'building' and 'cup' intersects only at 'u'. Set this parameter to
+# prevent it.
+MINIMUM_INTERSECTION = argv.get("--min_common", default=2)
 
 # Allowed minimum of length of rule to be added to rules set.
 MINIMUM_RULE_LENGTH = argv.get("--min_rule", default=2)
@@ -146,13 +152,13 @@ def lookForIntersections(tokens: list):
         match = matcher.find_longest_match(
             0, len(base), 0, len(token)
         )
-        if match.size > 0:
+        if match.size != 0 and match.size >= MINIMUM_INTERSECTION:
             base = base[match.a:match.a + match.size]
         else:
             exceptions.append(token)
 
     return {
-        "result": base,
+        "result": base if len(base) <= MAXIMUM_INTERSECTION else "",
         "exceptions": exceptions
     }
 
@@ -178,6 +184,7 @@ for upos, xpos in poses:
             maincoll.insert_one({
                 "upos": upos,
                 "xpos": xpos,
+                "type": "static",
                 "data": tokens
             })
         print(
@@ -196,14 +203,8 @@ for upos, xpos in poses:
     rules = set()
 
     exceptionsLength = len(tokens)
-    print(">tokens")
-    print(tokens)
     # Loop through 'exceptions' while they're still appearing
     while True:
-        print("tokens")
-        print(tokens)
-        print("rules")
-        print(rules)
 
         if len(tokens) == 0:
             break
@@ -215,14 +216,18 @@ for upos, xpos in poses:
         if len(commons["result"]) > MAXIMUM_INTERSECTION:
             reorder(tokens, 0, 1)
             print(
-                "{0:<15}{1:<8}Reordering occured."
+                "{0:<15}{1:<8}Reordering occured.".format(
+                    xpos, len(tokens)
+                )
             )
             continue
 
         # If there's no intersections, then put it to exceptions.
         if len(commons["result"]) == 0:
             print(
-                "{0:<15}{1:<8}New exception occured."
+                "{0:<15}{1:<8}New exception occured.".format(
+                    xpos, len(tokens)
+                )
             )
             exceptions.append(
                 tokens.pop(0)
