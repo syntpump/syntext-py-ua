@@ -29,6 +29,7 @@ class DB:
     EMENDPOS_KEEP = 11
     SYNTEXTRACT = 20
     SYNTEXTRACT_KEEP = 21
+    TEMPORARY = 90
 
     def __init__(self, host='atlas', dbname='syntextua'):
         """Return MongoClient() connected to 'localhost' or 'atlas'. You must
@@ -188,6 +189,24 @@ class DB:
         coll.insert_one({})
 
         return coll
+
+    def deleteTemporaries(self):
+        """Delete all databases with TEMPORARY marker.
+
+        Returns:
+            list: Name of all deleted collections.
+
+        """
+
+        temps = list(filter(
+            lambda name: name[0:7] == f"temp_{self.TEMPORARY}",
+            self.cli.collection_names()
+        ))
+
+        for name in temps:
+            self.drop(name)
+
+        return temps
 
     def getTemps(self):
         """Get names of all temporary collections.

@@ -99,3 +99,9 @@ class Params:
         data = input()
         self.bundle[name] = data
         return data
+
+    def isEmpty(self):
+        """Returns True, if no parameters was passed.
+        """
+
+        return len(self.bundle) == 1
