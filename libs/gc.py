@@ -32,6 +32,17 @@ class ConlluReader:
     DATALINE = 1
     BLANKLINE = 2
 
+    # Since these fields are different from format to format, the universal
+    # interface should be provided.
+    # Name of field which contains language-specific POS.
+    XPOSNAME = 'xpos'
+    # Name of field which contains universal POS.
+    UPOSNAME = 'upos'
+    # Name of field which contains token as it occurs in the text.
+    FORMNAME = 'form'
+    # Name of field which contains lemma.
+    LEMMANAME = 'lemma'
+
     def __init__(self, filepath=None, ignoreComments=False, strict=True):
         """Open the file for parsing and set cursor to 0.
 
@@ -253,6 +264,26 @@ class ConlluReader:
             "type": self.DATALINE,
             "data": data
         }
+
+    @staticmethod
+    def extractProperty(line, prop="form"):
+        """Returns property from the result of nextLine() execution.
+        Since the every format is different and nextLine() reader may returns
+        different resutls, the universal interface for extracting specified
+        properties from line must be provided.
+
+        Args:
+            line (dict): A result of nextLine() exection.
+            prop (str): A property to extract. "form" by default, which means
+                "token as it occurs in text".
+
+        Returns:
+            str: If the line is DATALINE.
+            bool: False otherwise.
+
+        """
+
+        return line["data"][prop]
 
     def nextSentence(self):
         """Parse the next sentence.
