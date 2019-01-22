@@ -60,12 +60,12 @@ class XPOSRecognitionAnalyzer:
 
         """
 
-        if self.limit <= self.CHECKED:
-            raise StopIteration
-
         try:
             # All non-DATALINE lines will be 'continue'd
             while True:
+                if self.limit <= self.CHECKED:
+                    raise StopIteration
+
                 line = self.reader.nextLine()
                 if line["type"] != self.reader.DATALINE:
                     continue

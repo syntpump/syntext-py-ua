@@ -1,3 +1,6 @@
+# TODO: write logs into file
+
+
 from libs.params import Params
 from libs.arrproc import unduplicate, keyExtract, reorder
 from libs.strproc import groupEndings

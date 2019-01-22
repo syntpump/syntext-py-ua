@@ -43,7 +43,7 @@ class Logger:
             json.dumps(
                 data,
                 indent=4,
-                default=lambda o: "<unserializable>",
+                default=lambda obj: str(type(obj)),
                 ensure_ascii=False
             )
         )
