@@ -6,6 +6,7 @@ from libs.morphology import MorphologyRecognizer
 from libs.accuracy import XPOSRecognitionAnalyzer
 from importlib import import_module
 from libs.ui import percentage
+from libs.logs import Logger
 
 
 argv = Params()
@@ -41,6 +42,10 @@ print("Loading...\r")
 
 from libs.db import DB # noqa E402
 
+
+logger = Logger(
+    filepath=argv.get("--logfile", default="amalog.md")
+)
 
 requiered = ["path", "reader", "collection"]
 for require in requiered:
@@ -81,6 +86,8 @@ analyzer = XPOSRecognitionAnalyzer(
     applierFunction=applier
 )
 
+logger.write(f"Connected to {analyzer.recognizer.collection.name}\n")
+
 generator = analyzer.init()
 
 print(
@@ -93,7 +100,9 @@ print(
 
 try:
     while True:
-        next(generator)
+        logger.logjson(
+            next(generator)
+        )
         print(
             f"{analyzer.CHECKED}\t"
             f"{percentage(analyzer.CORRECT_XPOS, analyzer.CHECKED)}% "
@@ -106,5 +115,7 @@ except StopIteration:
     pass
 except KeyboardInterrupt:
     raise SystemExit
+finally:
+    logger.write("\n")
 
 print("\nDone.")

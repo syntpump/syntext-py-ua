@@ -84,17 +84,37 @@ class XPOSRecognitionAnalyzer:
 
                 self.CHECKED += 1
 
+                checks = {
+                    "IMPROVE_UPOS": False,
+                    "IMPROVE_XPOS": False,
+                    "CORRECT_UPOS": False,
+                    "CORRECT_XPOS": False
+                }
+
                 if result:
+
                     if upos in keyExtract(result, "upos"):
+
+                        checks["IMPROVE_UPOS"] = True
                         self.IMPROVE_UPOS += 1
+
                         if applierResult and upos == applierResult["upos"]:
+
+                            checks["CORRECT_UPOS"] = True
                             self.CORRECT_UPOS += 1
+
                     if xpos in keyExtract(result, "xpos"):
+
+                        checks["IMPROVE_XPOS"] = True
                         self.IMPROVE_XPOS += 1
+
                         if applierResult and xpos == applierResult["xpos"]:
+
+                            checks["CORRECT_XPOS"] = True
                             self.CORRECT_XPOS += 1
 
                 yield {
+                    "checks": checks,
                     "token": token,
                     "result": result,
                     "applierResult": applierResult

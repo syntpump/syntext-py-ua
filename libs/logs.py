@@ -2,7 +2,7 @@
 """
 
 
-import datetime
+import time
 import json
 
 
@@ -26,7 +26,7 @@ class Logger:
 
         self.file = open(filepath, mode="a+", encoding="utf-8")
         self.file.write(
-            datetime.now().strftime(
+            time.strftime(
                 "# Started at %I:%M%p %d %h, %a '%y\n"
             )
         )
@@ -39,14 +39,13 @@ class Logger:
 
         """
 
-        self.file.write(
-            json.dumps(
-                data,
-                indent=4,
-                default=lambda obj: str(type(obj)),
-                ensure_ascii=False
-            )
+        dumps = json.dumps(
+            data,
+            indent=4,
+            default=lambda obj: str(type(obj)),
+            ensure_ascii=False
         )
+        self.file.write(f"```json\n{dumps}\n```\n")
 
     def write(self, string):
         """Put the data into file.
