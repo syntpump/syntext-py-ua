@@ -16,9 +16,9 @@ if argv.has("?"):
 """
 Use this script to train xpos recognition. This will create a new temporary
 collection in database with training data you'll be able to merge with the main
-collaction later.
+collection later.
 
-Expected paramaters:
+Expected parameters:
 Name            Default     Description
 --dbhost ...    atlas       DB which will be use in order to upload training
                             data.

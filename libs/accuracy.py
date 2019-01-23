@@ -5,7 +5,7 @@ from .arrproc import keyExtract
 
 
 class XPOSRecognitionAnalyzer:
-    """Analyse the accuracy of recognition tokens' morphology.
+    """Analyze the accuracy of recognition tokens' morphology.
 
     Properties:
         CHECKED (int increment): Number of analyzed tokens.
@@ -17,7 +17,7 @@ class XPOSRecognitionAnalyzer:
             changing applierFunc.
         reader (*): On of readers specified in gc.py. It should contain
             nextLine() method and DATALINE constant.
-        limit (int): Limit on tokens to analyse.
+        limit (int): Limit on tokens to analyze.
         recognizer (MorphologyRecognizer): A class specified in morphology.py
             It should contain recognize() method.
         applier (function): Applier function for your recognizer.
@@ -36,7 +36,7 @@ class XPOSRecognitionAnalyzer:
         Args:
             reader (*): On of readers specified in gc.py. It should contain
                 nextLine() method and DATALINE constant.
-            limit (int): Limit on tokens to analyse.
+            limit (int): Limit on tokens to analyze.
             recognizer (MorphologyRecognizer): A class specified in
                 morphology.py. It should contain recognize() method.
             applierFunction (function): Applier function for your recognizer.

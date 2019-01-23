@@ -19,7 +19,7 @@ class Params:
         bundle (list): List of parameters.
 
     Raises:
-        TypeError: Something wrond with parameters, can't read it correctly.
+        TypeError: Something wrong with parameters, can't read it correctly.
 
     """
 

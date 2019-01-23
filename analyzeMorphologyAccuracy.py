@@ -5,6 +5,7 @@ from libs.params import Params
 from libs.morphology import MorphologyRecognizer
 from libs.accuracy import XPOSRecognitionAnalyzer
 from importlib import import_module
+from libs.ui import percentage
 
 
 argv = Params()
@@ -34,6 +35,8 @@ Name             Default     Description
 """ # noqa E122
         )
     raise SystemExit
+
+print("Loading...\r")
 
 
 from libs.db import DB # noqa E402
@@ -80,9 +83,28 @@ analyzer = XPOSRecognitionAnalyzer(
 
 generator = analyzer.init()
 
+print(
+    "Loaded succesfully.\n"
+    "Here you'll see the analyzing progress. Numbers in the brackets counts "
+    "cases where applier function were unable to apply correct rule, even "
+    "though DB returned one.\n"
+    "Checked\tXPOS\t\tUPOS"
+)
+
 try:
     while True:
         next(generator)
-        # TODO: info about progress
+        print(
+            f"{analyzer.CHECKED}\t"
+            f"{percentage(analyzer.CORRECT_XPOS, analyzer.CHECKED)}% "
+            f"({percentage(analyzer.IMPROVE_XPOS, analyzer.CHECKED)}%)\t"
+            f"{percentage(analyzer.CORRECT_UPOS, analyzer.CHECKED)}% "
+            f"({percentage(analyzer.IMPROVE_UPOS, analyzer.CHECKED)}%)",
+            end="\r"
+        )
 except StopIteration:
     pass
+except KeyboardInterrupt:
+    raise SystemExit
+
+print("\nDone.")
