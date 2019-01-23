@@ -102,12 +102,17 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token):
+    def recognize(self, token, applierFunc=None):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
         Args:
             token (str)
+            applierFunc (function): Searching might return a bundle of rules,
+                not just one correct, so you can specify a function which will
+                extract element you're really need. You can also use a static
+                method selectFirst() from this class to select the first
+                rule from the list.
 
         Returns:
             dict: A rule as it stored in DB.
@@ -120,8 +125,23 @@ class MorphologyRecognizer:
 
         """
 
+        token = token.lower()
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]
         for func in funcs:
             query = func(token)
             if len(query) != 0:
-                return query[0]
+                return applierFunc(query) if applierFunc else query
+
+    @staticmethod
+    def selectFirst(bundle):
+        """Returns first document in bundle.
+
+        Args:
+            bundle (list): A list of documents.
+
+        Returns:
+            dict: A document as it stored in DB.
+
+        """
+
+        return bundle[0]

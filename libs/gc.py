@@ -32,6 +32,17 @@ class ConlluReader:
     DATALINE = 1
     BLANKLINE = 2
 
+    # Since these fields are different from format to format, the universal
+    # interface should be provided.
+    # Name of field which contains language-specific POS.
+    XPOSNAME = 'xpos'
+    # Name of field which contains universal POS.
+    UPOSNAME = 'upos'
+    # Name of field which contains token as it occurs in the text.
+    FORMNAME = 'form'
+    # Name of field which contains lemma.
+    LEMMANAME = 'lemma'
+
     def __init__(self, filepath=None, ignoreComments=False, strict=True):
         """Open the file for parsing and set cursor to 0.
 
@@ -165,7 +176,7 @@ class ConlluReader:
         # Increase cursor to remember current reading line.
         self.cursor += 1
 
-        # Even empty lines containes '\n', so when length of the line is 0,
+        # Even empty lines contains '\n', so when length of the line is 0,
         # end of the file was reached.
         if len(line) == 0:
             raise EOFError("End of the file was reached.")
@@ -254,6 +265,26 @@ class ConlluReader:
             "data": data
         }
 
+    @staticmethod
+    def extractProperty(line, prop="form"):
+        """Returns property from the result of nextLine() execution.
+        Since the every format is different and nextLine() reader may returns
+        different results, the universal interface for extracting specified
+        properties from line must be provided.
+
+        Args:
+            line (dict): A result of nextLine() execution.
+            prop (str): A property to extract. "form" by default, which means
+                "token as it occurs in text".
+
+        Returns:
+            str: If the line is DATALINE.
+            bool: False otherwise.
+
+        """
+
+        return line["data"][prop]
+
     def nextSentence(self):
         """Parse the next sentence.
 
@@ -294,7 +325,7 @@ class ConlluReader:
         }
 
     def get(self, attribute, default=None):
-        """Look for some property, defined in the comment, at the beggining of
+        """Look for some property, defined in the comment, at the beginning of
         the file. (E.g., "newdoc id" or "doc_tittle").
 
         Args:
