@@ -30,29 +30,35 @@ class MorphologyRecognizer:
 
         """
 
-        query = self.collection.find({
-            "type": "rules",
-            "data": {
-                "$regex": rf"^[{token}]+$"
+        query = self.collection.aggregate([
+            {
+                "$match": {
+                    "$expr": {
+                        "$anyElementTrue": {
+                            "$map": {
+                                "input": "$data",
+                                "as": "s",
+                                "in": {
+                                    "$ne": [
+                                        -1,
+                                        {
+                                            "$indexOfBytes": [
+                                                token, "$$s"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "data": {
+                        "$type": "array"
+                    }
+                }
             }
-        })
+        ])
 
-        def substringExists(document):
-            """Returns True if one of string in document["data"] is a substring
-            for token.
-            """
-
-            for string in document["data"]:
-                if string in token:
-                    return True
-            return False
-
-        return list(
-            filter(
-                substringExists,
-                query
-            )
-        )
+        return list(query)
 
     def getStatic(self, token):
         """Look if this token has static POS and returns a rule for it.
