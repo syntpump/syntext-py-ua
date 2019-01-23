@@ -39,9 +39,15 @@ Name            Default     Description
 if not argv.has("--path"):
     argv.request("path", text="Provide a path to UD file")
 
+print("Loading...")
+
 
 from libs.db import DB # noqa E402
 
+
+logger = Logger(
+    filepath=argv.get("--logfile", default="xpostrainlog.md")
+)
 
 udfile = ConlluReader(
     filepath=str(argv.get("--path")),
@@ -56,14 +62,9 @@ tempdb = DB(
 
 tempcoll = tempdb.createCollection(tempdb.TEMPORARY)
 
-logsEnabled = argv.has("--logfile")
-testEnabled = argv.has("-test")
+logger.write(f"Created {tempcoll.name} as temporary collection.\n")
 
-if logsEnabled:
-    logger = Logger(
-        filepath=argv.get("--logfile"),
-        default="xpostrain.md"
-    )
+testEnabled = argv.has("-test")
 
 # POSes which don't declense. Remember them as exceptions.
 STATICPOS = ["ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "SCONJ",
@@ -113,6 +114,7 @@ try:
 except EOFError:
     pass
 finally:
+    logger.write(f"Collected {len(poses)} XPOSes.\n")
     print(
         f"\nReached end of the file, collected {len(poses)} XPOSes. "
         "Iterating over them...\n"
@@ -125,6 +127,7 @@ maindb = DB(
 )
 
 maincoll = maindb.createCollection(maindb.XPOSTRAIN)
+logger.write(f"Created {maincoll.name} collection in main db.\n")
 
 
 def lookForIntersections(tokens: list):
@@ -168,7 +171,10 @@ def lookForIntersections(tokens: list):
 
 for upos, xpos in poses:
 
+    logger.write(f"Analyzing {upos}: {xpos}...\n")
+
     if upos in IGNOREPOS:
+        logger.write("Skip IGNOREPOS.\n")
         continue
 
     tokens = unduplicate(
@@ -181,6 +187,8 @@ for upos, xpos in poses:
             "form"
         )
     )
+    logger.write(f"Found {len(tokens)} for that:\n")
+    logger.logjson(tokens)
 
     if upos in STATICPOS:
         if not testEnabled:
@@ -193,12 +201,14 @@ for upos, xpos in poses:
         print(
             "{0:<15}{1:<8}Added as exceptions.".format(xpos, len(tokens))
         )
+        logger.write("STATICPOS; Added as exception.\n")
         continue
 
     if len(tokens) < 2:
         print(
             "{0:<15}{1:<8}Lack of data to train.".format(xpos, len(tokens))
         )
+        logger.write("Not enough data to train.\n")
 
     tokens = groupEndings(tokens)
 
@@ -263,20 +273,32 @@ for upos, xpos in poses:
         exceptionsLength = len(tokens)
 
     if len(exceptions) != 0:
-        maincoll.insert_one({
-            "xpos": xpos,
-            "upos": upos,
-            "type": "exceptions",
-            "data": exceptions
-        })
+        if not testEnabled:
+            maincoll.insert_one({
+                "xpos": xpos,
+                "upos": upos,
+                "type": "exceptions",
+                "data": exceptions
+            })
+        logger.write(f"Added {len(exceptions)} exceptions:\n")
+        logger.logjson(exceptions)
+    else:
+        logger.write("No exceptions was noticed.\n")
 
     if len(rules) != 0:
-        maincoll.insert_one({
-            "xpos": xpos,
-            "upos": upos,
-            "type": "rules",
-            "data": list(rules)
-        })
+        if not testEnabled:
+            maincoll.insert_one({
+                "xpos": xpos,
+                "upos": upos,
+                "type": "rules",
+                "data": list(rules)
+            })
+        logger.write(f"Added {len(rules)} rules:\n")
+        logger.logjson(list(rules))
+    else:
+        logger.write("No rules was made.\n")
+
+    logger.write("\n\n")
 
 
 tempcoll.drop()
