@@ -56,7 +56,7 @@ udfile = ConlluReader(
 )
 
 tempdb = DB(
-    host=argv.get("--dbhost", default="localhost"),
+    host=argv.get("--tempdb", default="localhost"),
     dbname="syntextua_tempdb"
 )
 
