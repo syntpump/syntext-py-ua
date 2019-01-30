@@ -53,7 +53,8 @@ class MorphologyRecognizer:
                     },
                     "data": {
                         "$type": "array"
-                    }
+                    },
+                    "type": "rules"
                 }
             }
         ])
