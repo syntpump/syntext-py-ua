@@ -1,12 +1,10 @@
-# TODO: write logs into file
-
-
 from libs.params import Params
 from libs.arrproc import unduplicate, keyExtract, reorder
 from libs.strproc import groupEndings
 from libs.logs import Logger
 from libs.gc import ConlluReader
 from difflib import SequenceMatcher
+# TODO: choose reader
 
 
 argv = Params()
