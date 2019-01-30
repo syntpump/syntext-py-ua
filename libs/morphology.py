@@ -115,6 +115,10 @@ class MorphologyRecognizer:
                 method selectFirst() from this class to select the first
                 rule from the list.
 
+        applierFunc Args:
+            list: List of rules from DB.
+            token: Current token.
+
         Returns:
             dict: A rule as it stored in DB.
                 {
@@ -131,18 +135,50 @@ class MorphologyRecognizer:
         for func in funcs:
             query = func(token)
             if len(query) != 0:
-                return applierFunc(query) if applierFunc else query
+                return applierFunc(query, token) if applierFunc else query
 
     @staticmethod
-    def selectFirst(bundle):
+    def selectFirst(bundle, token):
         """Returns first document in bundle.
 
         Args:
-            bundle (list): A list of documents.
+            (See MorphologyRecognizer.recognize)
 
         Returns:
-            dict: A document as it stored in DB.
+            dict: A document as it was stored in DB.
 
         """
 
-        return bundle[0]
+        return bundle[0] if bundle else None
+
+    @staticmethod
+    def selectByEnding(bundle, token):
+        """Returns first document in bundle, but except those which rule does
+        not match with the very ending or the beginning of the token.
+
+        Args:
+            (See MorphologyRecognizer.recognize)
+
+        Returns:
+            dict: A document is it was stored in DB.
+
+        """
+
+        def checkEndings(li, string):
+            """Returns True if at least one of the items in list is the
+            beginning or ending of the string.
+            """
+            for item in li:
+                if string[:len(item)] == item or string[-len(item):] == item:
+                    return True
+
+            return False
+
+        bundle = list(
+            filter(
+                lambda rule: checkEndings(rule["data"], token),
+                bundle
+            )
+        )
+
+        return bundle[0] if bundle else None
