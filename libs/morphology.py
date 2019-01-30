@@ -164,21 +164,31 @@ class MorphologyRecognizer:
 
         """
 
-        def checkEndings(li, string):
-            """Returns True if at least one of the items in list is the
-            beginning or ending of the string.
+        def getBiggestEdge(li, string):
+            """Returns first item from list if that can be ending of beginning
+            of the word.
             """
+            # Longest rules first
+            li.sort(key=len, reverse=True)
+
             for item in li:
-                if string[:len(item)] == item or string[-len(item):] == item:
-                    return True
+                # Do not allow strings with len=1 recognize as the beginnings
+                if len(item) == 1:
+                    if string[-len(item):]:
+                        return item
+                elif string[:len(item)] == item or string[-len(item):] == item:
+                    return item
 
-            return False
+            return None
 
-        bundle = list(
-            filter(
-                lambda rule: checkEndings(rule["data"], token),
-                bundle
-            )
+        for rule in bundle:
+            # Replace list of rules with one-element list. Element will be
+            # chosen by getBiggestEdge
+            rule["data"] = [getBiggestEdge(rule["data"], token)]
+
+        bundle.sort(
+            key=lambda rule: len(rule["data"][0]),
+            reverse=True
         )
 
         return bundle[0] if bundle else None
