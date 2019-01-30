@@ -187,7 +187,8 @@ class MorphologyRecognizer:
             rule["data"] = [getBiggestEdge(rule["data"], token)]
 
         bundle.sort(
-            key=lambda rule: len(rule["data"][0]),
+            # Move down empty rules
+            key=lambda rule: len(rule["data"][0]) if rule["data"][0] else 0,
             reverse=True
         )
 
