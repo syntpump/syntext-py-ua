@@ -30,13 +30,15 @@ class XPOSRecognitionAnalyzer:
     IMPROVE_XPOS = 0
     IMPROVE_UPOS = 0
 
-    def __init__(self, reader, limit, recognizer, applierFunction):
+    def __init__(self, reader, limit, offset, recognizer, applierFunction):
         """Prepare an analyser.
 
         Args:
             reader (*): On of readers specified in gc.py. It should contain
                 nextLine() method and DATALINE constant.
             limit (int): Limit on tokens to analyze.
+            offset (int): Number of tokens from the beginning of the file to
+                be skipped.
             recognizer (MorphologyRecognizer): A class specified in
                 morphology.py. It should contain recognize() method.
             applierFunction (function): Applier function for your recognizer.
@@ -44,6 +46,7 @@ class XPOSRecognitionAnalyzer:
         """
         self.reader = reader
         self.limit = limit
+        self.offset = offset
         self.recognizer = recognizer
         self.applier = applierFunction
 
@@ -69,6 +72,11 @@ class XPOSRecognitionAnalyzer:
                 line = self.reader.nextLine()
                 if line["type"] != self.reader.DATALINE:
                     continue
+
+                if self.CHECKED < self.offset:
+                    self.CHECKED += 1
+                    continue
+
                 token = self.reader.extractProperty(
                     line, prop=self.reader.FORMNAME
                 )
@@ -117,7 +125,8 @@ class XPOSRecognitionAnalyzer:
                     "checks": checks,
                     "token": token,
                     "result": result,
-                    "applierResult": applierResult
+                    "applierResult": applierResult,
+                    "gc": line
                 }
 
         except EOFError:
