@@ -64,6 +64,14 @@ class XPOSRecognitionAnalyzer:
         """
 
         try:
+            # Skip offset
+            if self.offset != 0:
+                i = 0
+                while i < self.offset:
+                    line = self.reader.nextLine()
+                    if line["type"] == self.reader.DATALINE:
+                        i += 1
+
             # All non-DATALINE lines will be 'continue'd
             while True:
                 if self.limit <= self.CHECKED:
@@ -71,10 +79,6 @@ class XPOSRecognitionAnalyzer:
 
                 line = self.reader.nextLine()
                 if line["type"] != self.reader.DATALINE:
-                    continue
-
-                if self.CHECKED < self.offset:
-                    self.CHECKED += 1
                     continue
 
                 token = self.reader.extractProperty(
