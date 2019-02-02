@@ -4,6 +4,7 @@ from libs.accuracy import XPOSRecognitionAnalyzer
 from importlib import import_module
 from libs.ui import percentage
 from libs.logs import Logger
+import json
 
 
 argv = Params()
@@ -27,6 +28,11 @@ Name             Default     Description
                              path.module.class.function
                              module.class.property.function
                              ...
+                             Default is
+                             libs.morphology.MorphologyRecognizer.selectFirst
+--priority ...   None        Priority list in JSON format is it documented in
+                             MorhologyRecognizer module. Don't forget to
+                             escape quotes!
 --limit ...      0           Limit of tokens to be processed. Set to '0' to set
                              it to infinite.
 --offset ...     0           Skip first N tokens from UD file you've specified.
@@ -63,6 +69,10 @@ while len(applierAddr) > 0:
 
 reader = getattr(import_module("libs.gc"), argv.get("--reader"))
 
+priorityList = None
+if argv.has("--priority"):
+    priorityList = json.loads(argv.get("--priority", default=None))
+
 limit = int(argv.get("--limit", default="0"))
 offset = int(argv.get("--offset", default="0"))
 
@@ -83,7 +93,8 @@ analyzer = XPOSRecognitionAnalyzer(
             argv.get("--collection")
         )
     ),
-    applierFunction=applier
+    applierFunction=applier,
+    priorityList=priorityList
 )
 
 logger.write(f"Connected to {analyzer.recognizer.collection.name}\n")
