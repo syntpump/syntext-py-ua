@@ -103,12 +103,12 @@ class ConlluReader:
             "Gender": "Com",
             "Number": "Sing"
         }
-        (2) False
+        (2) None
 
         """
 
         if line == '_':
-            return False
+            return None
 
         data = dict()
 
