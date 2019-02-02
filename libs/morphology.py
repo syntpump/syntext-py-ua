@@ -2,13 +2,15 @@
 appropriate rule in DB and returns you the result.
 """
 
+from .arrproc import containesSupsetDict
+
 
 class MorphologyRecognizer:
     """This class contains methods for morhology processing.
     """
 
     def __init__(self, collection):
-        """Init the recognizer with specified db connetion.
+        """Init the recognizer with specified db connection.
 
         Args:
             collection (Collection): A Collection from pymongo that will be
@@ -103,7 +105,7 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token, applierFunc=None):
+    def recognize(self, token, applierFunc=None, priorityList=None):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
@@ -114,6 +116,25 @@ class MorphologyRecognizer:
                 extract element you're really need. You can also use a static
                 method selectFirst() from this class to select the first
                 rule from the list.
+            priorityList (list): Specify dominating of one type over another.
+                (See the example below).
+
+        priorityList example:
+            Suppose, we have this data:
+            priorityList = {
+                "Q": {
+                    xpos: "Css",
+                    upos: "CCONJ",
+                    ...additional parameters
+                },
+                ...
+            }
+            That means the every occuring of "Q" XPOS will be replaced with
+            "CCONJ Css" pos, but only when both of them are presented in DB
+            response. Any other parameters ("additional parameters") will be
+            added to the token's rule too.
+            This may be useful when two equal words appears to be different
+            POS, but one of them more frequent.
 
         applierFunc Args:
             list: List of rules from DB.
@@ -132,10 +153,33 @@ class MorphologyRecognizer:
 
         token = token.lower()
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]
+        query = None  # Response from DB
+        result = None  # Result rule
         for func in funcs:
             query = func(token)
             if len(query) != 0:
-                return applierFunc(query, token) if applierFunc else query
+                result = applierFunc(query, token) if applierFunc else query
+                break
+
+        if not result:
+            return None
+
+        if priorityList:
+
+            # Delete "data" parameter in list of rules from DB in order to make
+            # it comparable with `result` since their "data" can be different.
+            for rule in query:
+                del rule["data"]
+
+            # Iterate over XPOSes to replace.
+            for xpos in priorityList:
+                if (
+                    result["xpos"] == xpos and
+                    containesSupsetDict(query, priorityList[xpos])
+                ):
+                    result.update(priorityList[xpos])
+
+        return result
 
     @staticmethod
     def selectFirst(bundle, token):
