@@ -1,6 +1,3 @@
-# TODO: write logs into file
-
-
 from libs.params import Params
 from libs.morphology import MorphologyRecognizer
 from libs.accuracy import XPOSRecognitionAnalyzer
@@ -32,6 +29,7 @@ Name             Default     Description
                              ...
 --limit ...      0           Limit of tokens to be processed. Set to '0' to set
                              it to infinite.
+--offset ...     0           Skip first N tokens from UD file you've specified.
 -strictUD        False       Use strict UD format.
 """ # noqa E122
         )
@@ -66,6 +64,7 @@ while len(applierAddr) > 0:
 reader = getattr(import_module("libs.gc"), argv.get("--reader"))
 
 limit = int(argv.get("--limit", default="0"))
+offset = int(argv.get("--offset", default="0"))
 
 analyzer = XPOSRecognitionAnalyzer(
     reader=reader(
@@ -74,6 +73,7 @@ analyzer = XPOSRecognitionAnalyzer(
         strict=argv.get("-strictUD", default=False)
     ),
     limit=float("inf") if limit == 0 else limit,
+    offset=offset,
     recognizer=MorphologyRecognizer(
         collection=(
             DB(

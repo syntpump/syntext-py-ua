@@ -103,12 +103,12 @@ class ConlluReader:
             "Gender": "Com",
             "Number": "Sing"
         }
-        (2) False
+        (2) None
 
         """
 
         if line == '_':
-            return False
+            return None
 
         data = dict()
 
@@ -186,6 +186,9 @@ class ConlluReader:
             return {
                 "type": self.BLANKLINE
             }
+
+        # Delete \n at the end of the line.
+        line = line[:-1]
 
         # Go to the next line if current is a comment.
         if line[0] == '#':

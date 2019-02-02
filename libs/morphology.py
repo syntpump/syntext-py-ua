@@ -53,7 +53,8 @@ class MorphologyRecognizer:
                     },
                     "data": {
                         "$type": "array"
-                    }
+                    },
+                    "type": "rules"
                 }
             }
         ])
@@ -114,6 +115,10 @@ class MorphologyRecognizer:
                 method selectFirst() from this class to select the first
                 rule from the list.
 
+        applierFunc Args:
+            list: List of rules from DB.
+            token: Current token.
+
         Returns:
             dict: A rule as it stored in DB.
                 {
@@ -130,18 +135,61 @@ class MorphologyRecognizer:
         for func in funcs:
             query = func(token)
             if len(query) != 0:
-                return applierFunc(query) if applierFunc else query
+                return applierFunc(query, token) if applierFunc else query
 
     @staticmethod
-    def selectFirst(bundle):
+    def selectFirst(bundle, token):
         """Returns first document in bundle.
 
         Args:
-            bundle (list): A list of documents.
+            (See MorphologyRecognizer.recognize)
 
         Returns:
-            dict: A document as it stored in DB.
+            dict: A document as it was stored in DB.
 
         """
 
-        return bundle[0]
+        return bundle[0] if bundle else None
+
+    @staticmethod
+    def selectByEnding(bundle, token):
+        """Returns first document in bundle, but except those which rule does
+        not match with the very ending or the beginning of the token.
+
+        Args:
+            (See MorphologyRecognizer.recognize)
+
+        Returns:
+            dict: A document is it was stored in DB.
+
+        """
+
+        def getBiggestEdge(li, string):
+            """Returns first item from list if that can be ending of beginning
+            of the word.
+            """
+            # Longest rules first
+            li.sort(key=len, reverse=True)
+
+            for item in li:
+                # Do not allow strings with len=1 recognize as the beginnings
+                if len(item) == 1:
+                    if string[-len(item):]:
+                        return item
+                elif string[:len(item)] == item or string[-len(item):] == item:
+                    return item
+
+            return None
+
+        for rule in bundle:
+            # Replace list of rules with one-element list. Element will be
+            # chosen by getBiggestEdge
+            rule["data"] = [getBiggestEdge(rule["data"], token)]
+
+        bundle.sort(
+            # Move down empty rules
+            key=lambda rule: len(rule["data"][0]) if rule["data"][0] else 0,
+            reverse=True
+        )
+
+        return bundle[0] if bundle else None
