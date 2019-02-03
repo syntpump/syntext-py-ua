@@ -1,0 +1,260 @@
+{
+    "N": {
+        "upos": "Noun",
+        "attrs": ["Type", "Gender", "Number", "Case", "Animate"],
+        "Type": {
+			"c": "common",
+			"p": "proper"
+        },
+        "Gender": {
+			"m": "masculine",
+			"f": "feminine",
+			"n": "neuter",
+			"c": "common"
+        },
+        "Number": {
+			"s": "singular",
+			"p": "plural"
+        },
+        "Case": {
+			"n": "nominative",
+			"g": "genitive",
+			"d": "dative",
+			"a": "accusative",
+			"i": "instrumental",
+			"l": "locative",
+			"v": "vocative"
+        },
+        "Animate": {
+			"n": "no",
+			"y": "yes"
+        }
+    },
+    "V": {
+        "upos": "Verb",
+        "attrs": ["Type", "Aspect", "VForm", "Tense", "Person", "Number", "Gender"],
+        "Type": {
+			"m": "main",
+			"a": "auxiliary"
+        },
+        "Aspect": {
+			"p": "progressive",
+			"e": "perfective",
+			"b": "biaspectual"
+        },
+        "VForm": {
+			"i": "indicative",
+			"m": "imperative",
+			"n": "infinitive",
+			"o": "impersonal",
+			"g": "gerund"
+        },
+        "Tense": {
+			"p": "present",
+			"f": "future",
+			"s": "past"
+        },
+        "Person": {
+			"1": "first",
+			"2": "second",
+			"3": "third"
+        },
+        "Number": {
+			"s": "singular",
+			"p": "plural"
+        },
+        "Gender": {
+			"m": "masculine",
+			"f": "feminine",
+			"n": "neuter"
+        }
+    },
+    "A": {
+        "upos": "Adj",
+        "attrs": ["Type", "Degree", "Gender", "Number", "Case", "Definiteness", "Animate", "Aspect", "Voice", "Tense"],
+        "Type": {
+			"f": "qualificative",
+			"o": "ordinal",
+			"p": "participle"
+        },
+        "Degree": {
+			"p": "positive",
+			"c": "comparative",
+			"s": "superlative"
+        },
+        "Gender": {
+			"m": "masculine",
+			"f": "feminine",
+			"n": "neuter",
+			"c": "common"
+        },
+        "Number": {
+			"s": "singular",
+			"p": "plural"
+        },
+        "Case": {
+			"n": "nominative",
+			"g": "genitive",
+			"d": "dative",
+			"a": "accusative",
+			"i": "instrumental",
+			"l": "locative"
+        },
+        "Definiteness": {
+			"s": "short-art",
+			"f": "full-art"
+        },
+        "Animate": {
+			"n": "no",
+			"y": "yes"
+        },
+        "Aspect": {
+			"p": "progressive",
+			"e": "perfective",
+			"b": "biaspectual"
+        },
+        "Voice": {
+			"a": "active",
+			"p": "passive"
+        },
+        "Tense": {
+			"p": "present",
+			"s": "past"
+        }
+    },
+    "P": {
+        "upos": "Pronoun",
+        "attrs": ["Type", "Referent_Type", "Person", "Gender", "Animate", "Number", "Case", "Syntactic_Type"],
+        "Type": {
+			"p": "personal",
+			"d": "demonstrative",
+			"i": "indefinite",
+			"s": "possessive",
+			"q": "interrogative",
+			"r": "relative",
+			"x": "reflexive",
+			"z": "negative",
+			"g": "general",
+			"h": "emphatic"
+        },
+		"Referent_Type": {
+			"s": "possessive"
+        },
+        "Person": {
+			"1": "first",
+			"2": "second",
+			"3": "third"
+        },
+        "Gender": {
+			"m": "masculine",
+			"f": "feminine",
+			"n": "neuter"
+        },
+        "Animate": {
+			"y": "yes",
+			"n": "no"
+        },
+        "Number": {
+			"s": "singular",
+			"p": "plural"
+        },
+        "Case": {
+			"n": "nominative",
+			"g": "genitive",
+			"d": "dative",
+			"a": "accusative",
+			"i": "instrumental",
+			"l": "locative"
+        },
+        "Syntactic_Type": {
+			"n": "nominal",
+			"a": "adjectival",
+			"r": "adverbial"
+        }
+    },
+    "R": {
+        "upos": "Adverb",
+        "attrs": ["Degree"],
+        "Degree": {
+			"p": "positive",
+			"c": "comparative",
+			"s": "superlative"
+        }
+    },
+    "S": {
+    	"upos": "Adposition",
+    	"attrs": ["Type", "Formation", "Case"],
+    	"Type": {
+			"p": "preposition"
+    	},
+    	"Formation": {
+			"s": "simple",
+			"c": "compound"
+    	},
+    	"Case": {
+			"g": "genitive",
+			"d": "dative",
+			"a": "accusative",
+			"i": "instrumental",
+			"l": "locative"
+    	}
+    },
+    "C": {
+    	"upos": "Conjunction",
+    	"attrs": ["Type", "Formation"],
+    	"Type": {
+			"c": "coordinating",
+			"s": "subordinating"
+    	},
+    	"Formation": {
+			"s": "simple",
+			"c": "compound"
+    	}
+    },
+    "M": {
+    	"upos": "Numeral",
+    	"attrs": ["Form", "Type", "Gender", "Number", "Case", "Animate"],
+    	"Form": {
+			"d": "digit",
+			"r": "roman",
+			"l": "letter"
+    	},
+    	"Type": {
+			"c": "cardinal",
+			"o": "ordinal"
+    	},
+    	"Gender": {
+			"m": "masculine",
+			"f": "feminine",
+			"n": "neuter"
+    	},
+    	"Number": {
+			"s": "singular",
+			"p": "plural"
+    	},
+    	"Case": {
+			"n": "nominative",
+			"g": "genitive",
+			"d": "dative",
+			"a": "accusative",
+			"i": "instrumental",
+			"l": "locative"
+    	},
+    	"Animate": {
+			"n": "no",
+			"y": "yes"
+    	}
+    },
+    "Q": {
+    	"upos": "Particle"
+    },
+    "I": {
+    	"upos": "Interjection"
+    },
+    "Y": {
+    	"upos": "Abbreviation"
+    },
+    "X": {
+    	"upos": "Residual"
+    }
+}
