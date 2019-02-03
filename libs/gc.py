@@ -9,6 +9,9 @@ be given access to nextLine() and nextSentence() methods.
 """
 
 
+import json
+
+
 class ConlluReader:
     """Use this class to read and parse Universal Dependencies data in CoNLL-U
     format.
@@ -42,6 +45,9 @@ class ConlluReader:
     FORMNAME = 'form'
     # Name of field which contains lemma.
     LEMMANAME = 'lemma'
+
+    # Data from gcfeats.json will be loaded here
+    XPOSDATA = None
 
     def __init__(self, filepath=None, ignoreComments=False, strict=True):
         """Open the file for parsing and set cursor to 0.
@@ -356,7 +362,67 @@ class ConlluReader:
                 respond = line["data"][attribute]
             line = self.nextLine()
 
-        # Return to prevoius position.
+        # Return to previous position.
         self.file.seek(cursor)
 
         return respond if respond else default
+
+    def parseXPOS(self, xpos):
+        """Returns features of the given XPOS.
+
+        Args:
+            xpos (str): XPOS of the token. Example: ' Ncfpnn'
+
+        Returns:
+            dict: Parsed XPOS. Example: {
+                'upos': 'Noun',
+                'Type': 'Common',
+                'Gender': 'Female',
+                'Number': 'Plural',
+                'Case': 'Nominative',
+                'Animacy': 'No'
+            }
+
+        Raises:
+            FileNotFoundError: The file with gcfeats data is not exists.
+            PermissionError: You're not allowed to access to file with gcfeats
+                data.
+            TypeError: Something wrong with your XPOS.
+
+        """
+
+        def _():
+            """A function made in order to avoid too large try..except block.
+            """
+
+            feats = dict()
+
+            block = self.XPOSDATA[xpos[0]]
+            feats["upos"] = block["upos"]
+
+            for i in range(1, len(xpos)):
+                prop = block["attrs"][i - 1]
+                letter = xpos[i]
+                # Property is undefined
+                if letter == '-':
+                    continue
+                feats[prop] = block[prop][letter]
+
+            return feats
+
+        if not self.XPOSDATA:
+            try:
+                with open("libs/gcfeats.json") as f:
+                    self.XPOSDATA = json.load(f)
+            except FileNotFoundError:
+                raise FileNotFoundError("File gcfeats.json not found.")
+
+        try:
+            return _()
+        except KeyError:
+            raise TypeError(
+                "Something wrong with your XPOS. Please, check it with "
+                "MULTEXT-East Morphosyntactic Specifications, Version 4."
+            )
+
+        return self.XPOSDATA
