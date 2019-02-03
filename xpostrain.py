@@ -2,9 +2,8 @@ from libs.params import Params
 from libs.arrproc import unduplicate, keyExtract, reorder
 from libs.strproc import groupEndings
 from libs.logs import Logger
-from libs.gc import ConlluReader
+from importlib import import_module
 from difflib import SequenceMatcher
-# TODO: choose reader
 
 
 argv = Params()
@@ -24,6 +23,8 @@ Name            Default     Description
 --logfile ...   -->         File to write full logs in. Default:
                             xpostrainlog.md
 --path ...      *requiered  Path to Universal Dependencies file.
+--reader ...    *requiered  Name of UD Reader class to use. This class will
+                            be imported from gc.py library.
 --limit ...     0           Limit of tokens to be processed. Can be used for
                             testing script. Pass '0' to set it to infinite.
 --max_common ...4           Maximum allowed intersection length.
@@ -47,7 +48,9 @@ logger = Logger(
     filepath=argv.get("--logfile", default="xpostrainlog.md")
 )
 
-udfile = ConlluReader(
+reader = getattr(import_module("libs.gc"), argv.get("--reader"))
+
+udfile = reader(
     filepath=str(argv.get("--path")),
     ignoreComments=True,
     strict=False
@@ -57,6 +60,8 @@ tempdb = DB(
     host=argv.get("--tempdb", default="localhost"),
     dbname="syntextua_tempdb"
 )
+
+print("Loaded.")
 
 tempcoll = tempdb.createCollection(tempdb.TEMPORARY)
 
