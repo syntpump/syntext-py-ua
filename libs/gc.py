@@ -193,9 +193,6 @@ class ConlluReader:
                 "type": self.BLANKLINE
             }
 
-        # Delete \n at the end of the line.
-        line = line[:-1]
-
         # Go to the next line if current is a comment.
         if line[0] == '#':
             if self.ignoreComments:
@@ -222,6 +219,9 @@ class ConlluReader:
                     "type": self.COMMENTLINE,
                     "data": data
                 }
+
+        # Delete \n at the end of the line.
+        line = line[:-1]
 
         # Here's how fields of file us named in CoNLL-U Format:
         fields = [
