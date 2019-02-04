@@ -1,13 +1,14 @@
-"""Contains classes for performing xpos-training.
+"""Base class for all TMR classes.
 """
 
 
 class MorphologyRecognizeTrainer:
     """Base class for all trainer classes.
-    
+
     Properties:
         db (libs.DB): Main database
         collection (Collection): Collection where train data will be uploaded.
+        tempcoll (Collection): Collection for temporary/trash data.
         logger (libs.Logger)
         staticposes (list): List of static POSes (if supported by this
             recognizer).
@@ -15,19 +16,27 @@ class MorphologyRecognizeTrainer:
             recognizer).
         poses (set, optional): Set of (UPOS, XPOS) tuples of uploaded tokens by
             loadData() method. Is None before first use.
+        settings (dict): Dictionary of params that your trainer expect.
 
     """
 
     poses = None
 
-
-    def __init__(self, db, logger=None, staticposes=None, ignoreposes=None):
+    def __init__(
+        self, db, logger=None, staticposes=None, ignoreposes=None,
+        testenabled=False
+    ):
         """Assign __init__ arguments to class property and create new
-        temporary table in db.
+        table in db.
 
         Args:
             db (libs.DB)
             logger (libs.logs.Logger)
+            staticposes (list): List of static POSes (if supported by this
+                recognizer).
+            ignoreposes (list): List of POSes to be ignored (if supported by
+                this recognizer).
+            testenabled (bool): Do not upload any data to main db if True.
 
         """
 
@@ -36,6 +45,9 @@ class MorphologyRecognizeTrainer:
         self.logger = logger
         self.staticposes = staticposes
         self.ignoreposes = ignoreposes
+        self.testenabled = testenabled
+
+        self.log(f"Created {self.collection.name} as main collection.\n")
 
     def log(self, msg):
         """Call self.logger.write if self.logger is defined.
@@ -87,7 +99,9 @@ class MorphologyRecognizeTrainer:
 
         """
 
-        tempcoll = db.createCollection(db.TEMPORARY)
+        self.tempcoll = db.createCollection(db.TEMPORARY)
+
+        self.log(f"Created {self.tempcoll.name} as temp collection.\n")
 
         if limit == 0:
             limit = float("inf")
@@ -115,20 +129,9 @@ class MorphologyRecognizeTrainer:
                 "form": line["data"]["form"].lower()
             }
 
-            tempcoll.insert(record)
+            self.tempcoll.insert(record)
 
             yield {
                 "record": record,
                 "counter": counter
             }
-
-
-class TrainByAffixes(MorphologyRecognizeTrainer):
-    """This trainer will recognize similar affixes in words and adds it as
-    rules. It'll also create 'static' rules for POSes that have no declension
-    property and 'exception' rules for words that are too different from
-    others, so no connections can be found.
-    """
-
-    def nextXPOS():
-        pass
