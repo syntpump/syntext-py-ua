@@ -13,6 +13,9 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
     rules. It'll also create 'static' rules for POSes that have no declension
     property and 'exception' rules for words that are too different from
     others, so no connections can be found.
+    
+    Iteration function for this trainer is nextXPOS method.
+
     """
 
     def nextXPOS(self, maxCommon=4, minCommon=2, minRule=2):
@@ -36,7 +39,7 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
 
         """
 
-        print(f"Now {len(self.poses)} will be processed.")
+        print(f"Now {len(self.poses)} POSes will be processed.")
 
         for upos, xpos in self.poses:
 
@@ -69,15 +72,16 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
                         "data": tokens
                     })
                 self.log("STATICPOS; Added as exception.\n")
-                yield f"{len(tokens)} tokens of {xpos} was added as exceptions"
+                yield f"{len(tokens)} tokens of {xpos} was added as static"
                 continue
 
             if len(tokens) < 2:
-                self.log.write("Not enough data to train.\n")
+                self.log("Not enough data to train.\n")
                 yield (
                     f"There's only {len(tokens)} of {xpos} "
                     "tokens to train. Skip."
                 )
+                continue
 
             tokens = groupEndings(tokens)
 
@@ -88,10 +92,14 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
             # Loop through 'exceptions' while they're still appearing
             while True:
 
+                yield f"Processing {upos} {xpos} now"
+
                 if len(tokens) == 0:
                     break
 
-                commons = self.lookForIntersections(tokens)
+                commons = self.lookForIntersections(
+                    tokens, maxCommon, minCommon
+                )
 
                 # If the word cause too many intersections, then maybe we're
                 # comparing two words with the same roots. Just skip it.
@@ -103,27 +111,29 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
                     )
                     continue
 
-                # If there's no intersections, then put it to exceptions.
+                # If there's no intersections, then first token to exceptions.
                 if len(commons["result"]) == 0:
                     yield (
-                        f"{len(tokens)} tokens of {xpos} was added as "
-                        "exceptions"
+                        f"First of {xpos} was added as exception"
                     )
                     exceptions.append(
                         tokens.pop(0)
                     )
                     continue
 
-                yield (
-                    f"Rule for {len(tokens)} of {xpos} contains "
-                    f"{len(commons['result'])} commons and "
-                    f"{len(commons['exceptions'])} exceptions now"
-                )
-
                 # Do not add too short rules.
-                if len(commons["result"]) > minRule:
+                if len(commons["result"]) < minRule:
+                    yield (
+                        f"Rule was only {len(commons['result'])} length, "
+                        "that's short to add"
+                    )
+                    # Add first token to exceptions
+                    commons["exceptions"].append(
+                        tokens.pop(0)
+                    )
+                    continue
+                else:
                     rules.add(commons["result"])
-                    yield "Rule was too short to add"
 
                 if len(commons["exceptions"]) < 2:
                     break
@@ -147,6 +157,10 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
                         "type": "exceptions",
                         "data": exceptions
                     })
+                yield (
+                    f"Exception for {len(exceptions)} of {xpos} contains "
+                    f"{len(exceptions)} records"
+                )
                 self.log(f"Added {len(exceptions)} exceptions:\n")
                 self.logjson(exceptions)
             else:
@@ -162,12 +176,16 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
                     })
                 self.log(f"Added {len(rules)} rules:\n")
                 self.logjson(list(rules))
+                yield (
+                    f"Rule for {len(tokens)} of {xpos} contains "
+                    f"{len(rules)} commons "
+                )
             else:
                 self.log("No rules was made.\n")
 
             self.log("\n\n")
 
-    def lookForIntersections(self, tokens, minCommon, maxCommon):
+    def lookForIntersections(self, tokens, maxCommon, minCommon):
         """ Intersect all the tokens in list and return its common part. Look
         for exceptions too.
 

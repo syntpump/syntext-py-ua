@@ -7,7 +7,7 @@ class MorphologyRecognizeTrainer:
 
     Properties:
         db (libs.DB): Main database
-        collection (Collection): Collection where train data will be uploaded.
+        maincoll (Collection): Collection where train data will be uploaded.
         tempcoll (Collection): Collection for temporary/trash data.
         logger (libs.Logger)
         staticposes (list): List of static POSes (if supported by this
@@ -41,13 +41,13 @@ class MorphologyRecognizeTrainer:
         """
 
         self.db = db
-        self.collection = db.createCollection(db.XPOSTRAIN)
+        self.maincoll = db.createCollection(db.XPOSTRAIN)
         self.logger = logger
         self.staticposes = staticposes
         self.ignoreposes = ignoreposes
         self.testenabled = testenabled
 
-        self.log(f"Created {self.collection.name} as main collection.\n")
+        self.log(f"Created {self.maincoll.name} as main collection.\n")
 
     def log(self, msg):
         """Call self.logger.write if self.logger is defined.

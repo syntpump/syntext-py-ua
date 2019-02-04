@@ -1,5 +1,5 @@
-from .params import Params
-from .libs import Logger
+from libs.params import Params
+from libs.logs import Logger
 from importlib import import_module
 
 
@@ -22,13 +22,19 @@ Name            Default     Description
 --path ...      *requiered  Path to Universal Dependencies file.
 --reader ...    *requiered  Name of UD Reader class to use. This class will
                             be imported from libs.gc library.
---trainer...    *requiered  Name of trainer class to use. This class will
-                            be imported from libs.xpostrain library.
+-unstrict ...   False       Do not check GC format strictly.
+--trainer...    *requiered  Link to trainer class.
+                            Examples:
+                            module.submodule.class or module.class
+                            All before last dot must be a path to module.
+--entry ...     *requiered  Name of iteration function for your class. (See
+                            docs for this name). It's a function that perform
+                            one step in learning process.
 --limit ...     0           Limit of tokens to be processed. Can be used for
                             testing script. Pass '0' to set it to infinite.
 --offset ...    0           Skip first N tokens from GC.
 -test           False       Do not upload any data to dbhost.
-...Additional parameters needed for the trainer you chose.
+...Plus additional parameters needed for the trainer you chose.
 """ # noqa E122
     )
     raise SystemExit
@@ -43,7 +49,12 @@ print("Loading...")
 from libs.db import DB # noqa E402
 
 
-trainer = getattr(import_module("libs.gc"), argv.get("--trainer"))(
+trainerAddr = argv.get("--trainer").split(".")
+# All before lst dot must be a path to module
+trainer = import_module(".".join(trainerAddr[:-1]))
+
+# Get class from module and init it
+trainer = getattr(trainer, trainerAddr[-1])(
     db=DB(
         host=argv.get("--dbhost", default="atlas"),
         dbname="syntextua"
@@ -74,16 +85,17 @@ try:
         ),
         # This will import class with specified name from gc module and init it
         # with given parameters.
-        gcreader=getattr(import_module(".gc"), argv.get("--reader"))(
+        gcreader=getattr(import_module("libs.gc"), argv.get("--reader"))(
             filepath=str(argv.get("--path")),
             ignoreComments=True,
+            strict=False if argv.has("-unstrict") else True
         ),
         limit=int(argv.get("--limit", default=0)),
         offset=int(argv.get("--offset", default=0))
     )
     while True:
         counter = next(cursor)["counter"]
-        print(f"{counter} lines processed so far.")
+        print(f"{counter} lines processed so far.", end="\r")
 except (StopIteration, EOFError):
     pass
 finally:
@@ -91,10 +103,12 @@ finally:
     trainer.log(f"Collected {length} XPOSes.\n")
     print(f"Collected {length} XPOSes.\n")
 
-stream = trainer.nextXPOS()
+# This will get iteration function and execute it
+stream = getattr(trainer, argv.get("--entry"))()
 
 try:
-    msg = next(stream)
-    print(msg)
+    while True:
+        msg = next(stream)
+        print(msg)
 except StopIteration:
     print("End of the training.")
