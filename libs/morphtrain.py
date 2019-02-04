@@ -23,7 +23,7 @@ class MorphologyRecognizeTrainer:
     poses = None
 
     def __init__(
-        self, db, logger=None, staticposes=None, ignoreposes=None,
+        self, db, settings, logger=None, staticposes=None, ignoreposes=None,
         testenabled=False
     ):
         """Assign __init__ arguments to class property and create new
@@ -31,6 +31,7 @@ class MorphologyRecognizeTrainer:
 
         Args:
             db (libs.DB)
+            settings (dict): Dictionary of params that your trainer expect.
             logger (libs.logs.Logger)
             staticposes (list): List of static POSes (if supported by this
                 recognizer).
@@ -43,6 +44,7 @@ class MorphologyRecognizeTrainer:
         self.db = db
         self.maincoll = db.createCollection(db.XPOSTRAIN)
         self.logger = logger
+        self.settings = settings
         self.staticposes = staticposes
         self.ignoreposes = ignoreposes
         self.testenabled = testenabled

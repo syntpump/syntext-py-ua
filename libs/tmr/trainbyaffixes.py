@@ -18,26 +18,42 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
 
     """
 
-    def nextXPOS(self, maxCommon=4, minCommon=2, minRule=2):
+    def nextXPOS(self):
         """Generator function. Each next iteration process one of POS from
         self.poses set, returns rules and delete POS tuple from set.
 
-        Args:
-            maxCommon (int): If the word cause too many intersections, then
+        Expected settings:
+            maxcommon (int): If the word cause too many intersections, then
                 maybe we're comparing two words with the same roots. Here's the
                 number of maximum allowed intersection length. Tokens with
                 larger matching length will be reordered with the next token.
-            minCommon (int): Sometimes two words with different morphology have
+                Default: 4.
+            mincommon (int): Sometimes two words with different morphology have
                 very small common parts. E.g., 'building' and 'cup' intersects
                 only at 'u'. Set this parameter to prevent it.
-            minRule (int): Allowed minimum of length of rule to be added to
+                Default: 2.
+            minrule (int): Allowed minimum of length of rule to be added to
                 rules set.
+                Default: 2.
 
         Yields:
             Messages with info about what's going on at current iteration and
             results of processing. Can be string and dict both.
 
         """
+
+        maxCommon = (
+            int(self.settings["maxcommon"])
+            if "maxcommon" in self.settings else 4
+        )
+        minCommon = (
+            int(self.settings["mincommon"])
+            if "mincommon" in self.settings else 2
+        )
+        minRule = (
+            int(self.settings["minrule"])
+            if "minrule" in self.settings else 2
+        )
 
         print(f"Now {len(self.poses)} POSes will be processed.")
 

@@ -69,7 +69,8 @@ trainer = getattr(trainer, trainerAddr[-1])(
     ],
     # POSes which can be recognized automatically, skip them.
     ignoreposes=["SYM", "X"],
-    testenabled=True if argv.has("-test") else False
+    testenabled=True if argv.has("-test") else False,
+    settings=argv.getdict()
 )
 
 
@@ -101,7 +102,7 @@ except (StopIteration, EOFError):
 finally:
     length = len(trainer.poses)
     trainer.log(f"Collected {length} XPOSes.\n")
-    print(f"Collected {length} XPOSes.\n")
+    print(f"\nCollected {length} XPOSes.\n")
 
 # This will get iteration function and execute it
 stream = getattr(trainer, argv.get("--entry"))()
