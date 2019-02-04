@@ -16,7 +16,7 @@ class Params:
     script.
 
     Properties:
-        bundle (list): List of parameters.
+        bundle (dict): Dict of parameters.
 
     Raises:
         TypeError: Something wrong with parameters, can't read it correctly.
@@ -105,3 +105,23 @@ class Params:
         """
 
         return len(self.bundle) == 1
+
+    def getdict(self):
+        """Return parameters as dictionary.
+
+        Returns:
+            dict: Dictionary without '--' or '-' at the beginning of keys.
+
+        """
+
+        di = dict()
+
+        for key in self.bundle:
+            name = str()
+            if key[:2] == "--":
+                name = key[2:]
+            else:
+                name = key[1:]
+            di[name] = self.bundle[key]
+
+        return di

@@ -57,7 +57,7 @@ for require in requiered:
         argv.request(require, text=f"Provide a {require} name")
 
 applierAddr = argv.get("--applier").split(".")
-# First part of adress is a module
+# First part of address is a module
 applier = import_module(
     applierAddr.pop(0)
 )

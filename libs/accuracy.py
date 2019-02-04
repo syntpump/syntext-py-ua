@@ -77,7 +77,7 @@ class XPOSRecognitionAnalyzer:
                     if line["type"] == self.reader.DATALINE:
                         i += 1
 
-            # All non-DATALINE lines will be 'continue'd
+            # All non-DATALINE lines will be skipped
             while True:
                 if self.limit <= self.CHECKED:
                     raise StopIteration
