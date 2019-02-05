@@ -20,8 +20,10 @@ Name            Default     Description
 --logfile ...   -->         File to write full logs in. Default:
                             xpostrainlog.md
 --path ...      *requiered  Path to Universal Dependencies file.
---reader ...    *requiered  Name of UD Reader class to use. This class will
-                            be imported from libs.gc library.
+--reader ...    *requiered  Name of script and class of reader you want to
+                            choose. That will be found in libs/ud directory.
+                            Example:
+                            conllu.ConlluReader
 -unstrict ...   False       Do not check GC format strictly.
 --trainer...    *requiered  Link to trainer class.
                             Examples:
@@ -73,6 +75,7 @@ trainer = getattr(trainer, trainerAddr[-1])(
     settings=argv.getdict()
 )
 
+reader = argv.get("--reader").split(".")
 
 print("loaded.")
 
@@ -86,8 +89,8 @@ try:
         ),
         # This will import class with specified name from gc module and init it
         # with given parameters.
-        gcreader=getattr(import_module("libs.gc"), argv.get("--reader"))(
-            filepath=str(argv.get("--path")),
+        gcreader=getattr(import_module("libs.ud." + reader[0]), reader[1])(
+            filepath=argv.get("--path"),
             ignoreComments=True,
             strict=False if argv.has("-unstrict") else True
         ),

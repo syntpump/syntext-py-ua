@@ -21,8 +21,12 @@ Name             Default     Description
 --collection ... *requiered  Name of collections where the rules stored in.
 --logfile ...    amalog.md   File to write full logs in.
 --path ...       *requiered  Path to Universal Dependencies file.
---reader ...     *requiered  Name of UD Reader class to use. This class will
-                             be imported from gc.py library.
+--reader ...     *requiered  Name of script and class of reader you want to
+                             choose. That will be found in libs/ud directory.
+                             Example:
+                             conllu.ConlluReader
+                             All before last dot must be a path to module.
+-unstrict ...   False       Do not check GC format strictly.
 --applier ...    -->         Path to applier function for MorphologyRecognizer.
                              Example:
                              path.module.class.function
@@ -36,7 +40,6 @@ Name             Default     Description
 --limit ...      0           Limit of tokens to be processed. Set to '0' to set
                              it to infinite.
 --offset ...     0           Skip first N tokens from UD file you've specified.
--strictUD        False       Use strict UD format.
 """ # noqa E122
         )
     raise SystemExit
@@ -67,7 +70,12 @@ while len(applierAddr) > 0:
         applier, applierAddr.pop(0)
     )
 
-reader = getattr(import_module("libs.gc"), argv.get("--reader"))
+reader = argv.get("--reader").split(".")
+reader = getattr(import_module("libs.ud." + reader[0]), reader[1])(
+    filepath=argv.get("--path"),
+    ignoreComments=True,
+    strict=False if argv.has("-unstrict") else True
+)
 
 priorityList = None
 if argv.has("--priority"):
@@ -77,11 +85,7 @@ limit = int(argv.get("--limit", default="0"))
 offset = int(argv.get("--offset", default="0"))
 
 analyzer = XPOSRecognitionAnalyzer(
-    reader=reader(
-        filepath=argv.get("--path"),
-        ignoreComments=True,
-        strict=argv.get("-strictUD", default=False)
-    ),
+    reader=reader,
     limit=float("inf") if limit == 0 else limit,
     offset=offset,
     recognizer=MorphologyRecognizer(
