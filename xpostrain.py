@@ -25,9 +25,10 @@ Name            Default     Description
                             Example:
                             conllu.ConlluReader
 -unstrict ...   False       Do not check GC format strictly.
---trainer...    *requiered  Link to trainer class.
+--trainer...    *requiered  Name of script and class of trainer you want to
+                            choose. That will be found in libs/tmr directory.
                             Examples:
-                            module.submodule.class or module.class
+                            trainbyaffixes.TrainByAffixes
                             All before last dot must be a path to module.
 --entry ...     *requiered  Name of iteration function for your class. (See
                             docs for this name). It's a function that perform
@@ -51,12 +52,10 @@ print("Loading...")
 from libs.db import DB # noqa E402
 
 
-trainerAddr = argv.get("--trainer").split(".")
-# All before lst dot must be a path to module
-trainer = import_module(".".join(trainerAddr[:-1]))
+trainer = argv.get("--trainer").split(".")
 
 # Get class from module and init it
-trainer = getattr(trainer, trainerAddr[-1])(
+trainer = getattr(import_module("libs.tmr." + trainer[0]), trainer[1])(
     db=DB(
         host=argv.get("--dbhost", default="atlas"),
         dbname="syntextua"
