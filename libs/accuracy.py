@@ -31,14 +31,16 @@ class XPOSRecognitionAnalyzer:
     IMPROVE_UPOS = 0
 
     def __init__(
-        self, reader, limit, offset, recognizer, applierFunction, priorityList
+        self, reader, recognizer, applierFunction, priorityList=None, limit=0,
+        offset=0
     ):
         """Prepare an analyser.
 
         Args:
-            reader (*): On of readers specified in gc.py. It should contain
+            reader (*): On of readers specified in libs/ud. It should contain
                 nextLine() method and DATALINE constant.
-            limit (int): Limit on tokens to analyze.
+            limit (int): Limit on tokens to analyze. Set to 0 to make it
+                infinite.
             offset (int): Number of tokens from the beginning of the file to
                 be skipped.
             recognizer (MorphologyRecognizer): A class specified in
@@ -49,14 +51,14 @@ class XPOSRecognitionAnalyzer:
 
         """
         self.reader = reader
-        self.limit = limit
-        self.offset = offset
+        self.limit = limit if limit != 0 else float("inf")
+        self.offset = offset if offset else 0
         self.recognizer = recognizer
         self.applier = applierFunction
         self.priorityList = priorityList
 
     def init(self):
-        """Init a generator function. next() does the next check and returns
+        """Init a generator function next() does the next check and returns
         token with info.
 
         Yields:
