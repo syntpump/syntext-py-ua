@@ -9,6 +9,8 @@ from libs.arrproc import unduplicate, keyExtract
 from libs.ui import expect
 from pprint import pprint
 import json
+from bson import ObjectId
+
 
 class HumanTrainer(MorphologyRecognizeTrainer):
     """This trainer can analyze errors in recognition and allow use to create
@@ -19,7 +21,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
             This will be used for suggestions.
 
     """
-       
+
     rules = list()
 
     def nextXPOS(self):
@@ -36,6 +38,9 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
         """
 
+        self.rulescollection = self.db.cli.get_collection(
+            self.settings["rulescollection"]
+        )
 
         applierAddr = self.settings["applierFunction"].split(".")
         # First part of address is a module
@@ -49,9 +54,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
             )
 
         recognizer = MorphologyRecognizer(
-            collection=self.db.cli.get_collection(
-                self.settings["rulescollection"]
-            )
+            collection=self.rulescollection
         )
 
         priorityList = json.loads(self.settings["priorityList"])
@@ -126,18 +129,18 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                                 )
                             pprint(result, indent=4, compact=True)
 
-                            decision = expect(
+                            action = expect(
                                 msg=(
-                                    "Skip this token or make a new rule? "
-                                    "(s - Skip|r - Rule): "
+                                    "Skip this token (s) or enter to rule "
+                                    "manager (r)?: "
                                 ),
-                                what = ["r", "s"]
+                                what=["r", "s"]
                             )
 
-                            if decision == "s":
+                            if action == "s":
                                 continue
-                            elif decision == "r":
-                                self.newRule()
+                            elif action == "r":
+                                self.rulesManager()
 
                     if not mistakeExists:
                         raise ContinueException
@@ -160,14 +163,123 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
             yield "\n\n"
 
-    def newRule(self):
-        """Show the UI to create new rule for DB and adds in to DB.
+    def rulesManager(self):
+        """Show UI to create new rule for DB and adds in to DB.
         """
 
-        print("*pretends to be rule UI*")
+        print("-" * 80)
+        print("Rules manager.")
+
+        while True:
+
+            try:
+                action = expect(
+                    msg="Create, search, delete or exit?: ",
+                    what=["create", "search", "delete", "exit"]
+                )
+                if action == "create":
+                    self.newRule(xpos, upos)
+                elif action == "search":
+                    self.searchRules()
+                elif action == "delete":
+                    self.deleteRule()
+                elif action == "exit":
+                    raise ContinueException
+
+            except ContinueException:
+                break
+
+        print("-" * 80)
+
+    def searchRules(self):
+        """Show UI for searching rules.
+        """
+
+        print("Type a filter: ", end="")
+
+        try:
+            cursor = self.rulescollection.find(
+                json.loads(
+                    str(input())
+                )
+            )
+        except Exception:
+            print("There's error in your JSON.")
+            return None
+
+        print("<Start fetching response>")
+
+        for document in cursor:
+            pprint(document, indent=4, compact=True)
+            print("---")
+
+        print("<End fetching response>")
+
+    def deleteRule(self):
+        """Show UI for deleting rules.
+        """
+
+        print("Type ID to delete: ", end="")
+        try:
+            self.rulescollection.find_one_and_delete({
+                "_id": ObjectId(str(input()))
+            })
+        except Exception:
+            print("Exception happened:")
+            print(Exception)
+        print("Done.")
+
+    def newRule(self, xpos, upos):
+        """Show UI for creating rules.
+    
+        Args:
+            xpos (str): XPOS of inserting rule.
+            upos (str): UPOS of inserting rule.
+
+        """
+
+        ruleType = expect(
+            msg="Choose type of the rule: ",
+            what=["static", "exceptions", "rules"]
+        )
+
+        data = list()
+
+        # Repeat this until user break
+        while True:
+            try:
+                print(
+                    "Type data for your rule, separating with space: ",
+                    end=""
+                )
+                data = str(input()).split(" ")
+                print("Your data is: %s" % json.dumps(data))
+                if (
+                    expect(
+                        msg="Do you want to reenter data? (n|y):",
+                        what=["n", "y"]
+                    ) == "n"
+                ):
+                    raise ContinueException
+
+            except ContinueException:
+                break
+
+        inserted = self.maincoll.insert_one({
+            "xpos": xpos,
+            "upos": upos,
+            "type": ruleType,
+            "data": data
+        })
+
+        print("Rule inserted:")
+        pprint(inserted, indent=4, compact=True)
+
+
 
 class RepeatException(Exception):
     pass
+
 
 class ContinueException(Exception):
     pass

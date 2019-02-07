@@ -119,9 +119,10 @@ class MorphologyRecognizeTrainer:
 
         while counter < limit:
             line = gcreader.nextLine()
-            counter += 1
             if counter < offset:
                 continue
+            else:
+                counter += 1
             if line["type"] != gcreader.DATALINE:
                 continue
 
