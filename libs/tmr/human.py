@@ -140,7 +140,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                             if action == "s":
                                 continue
                             elif action == "r":
-                                self.rulesManager()
+                                self.rulesManager(xpos, upos)
 
                     if not mistakeExists:
                         raise ContinueException
@@ -163,7 +163,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
             yield "\n\n"
 
-    def rulesManager(self):
+    def rulesManager(self, xpos, upos):
         """Show UI to create new rule for DB and adds in to DB.
         """
 
@@ -253,10 +253,12 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                     end=""
                 )
                 data = str(input()).split(" ")
-                print("Your data is: %s" % json.dumps(data))
+                print(
+                    "Your data is: %s" % json.dumps(data, ensure_ascii=False)
+                )
                 if (
                     expect(
-                        msg="Do you want to reenter data? (n|y):",
+                        msg="Do you want to reenter data? (n|y): ",
                         what=["n", "y"]
                     ) == "n"
                 ):
@@ -265,7 +267,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
             except ContinueException:
                 break
 
-        inserted = self.maincoll.insert_one({
+        inserted = self.rulescollection.insert_one({
             "xpos": xpos,
             "upos": upos,
             "type": ruleType,
