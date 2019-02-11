@@ -34,7 +34,8 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                 which contains rules to test.
             applierFunction (str): Name of applier function for morphology
                 recognizer.
-            priorityList (str): Priority list for recognizer. (optional)
+            priorityList (str): Link to .json file with priority list
+                (optional).
 
         """
 
@@ -57,7 +58,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
             collection=self.rulescollection
         )
 
-        priorityList = json.loads(self.settings["priorityList"])
+        priorityList = json.load(self.settings["priorityList"])
 
         # Iterate each POS
         for upos, xpos in self.poses:
