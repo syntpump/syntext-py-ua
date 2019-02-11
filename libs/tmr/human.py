@@ -32,10 +32,12 @@ class HumanTrainer(MorphologyRecognizeTrainer):
         Expected settings:
             rulescollection (str): Name of collection with rules in main DB,
                 which contains rules to test.
+                Required.
             applierFunction (str): Name of applier function for morphology
                 recognizer.
+                Required.
             priorityList (str): Link to .json file with priority list
-                (optional).
+                Optional.
 
         """
 
@@ -58,7 +60,11 @@ class HumanTrainer(MorphologyRecognizeTrainer):
             collection=self.rulescollection
         )
 
-        priorityList = json.load(self.settings["priorityList"])
+        priorityList = json.load(
+            open(self.settings["priorityList"])
+        )
+
+        counter = 0
 
         # Iterate each POS
         for upos, xpos in self.poses:
@@ -72,6 +78,8 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                     # processing this POS
                     mistakeExists = False
 
+                    counter += 1
+
                     tokens = unduplicate(
                         keyExtract(
                             list(
@@ -83,7 +91,9 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                         )
                     )
 
-                    print(f"Training {upos} {xpos}.")
+                    print(
+                        f"Training {upos} {xpos}: {counter}/{len(self.poses)}"
+                    )
                     print("Tokens found: %s.\n" % ', '.join(tokens))
 
                     # Iterate each token of this POS
@@ -232,7 +242,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
     def newRule(self, xpos, upos):
         """Show UI for creating rules.
-    
+
         Args:
             xpos (str): XPOS of inserting rule.
             upos (str): UPOS of inserting rule.
