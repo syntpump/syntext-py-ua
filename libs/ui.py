@@ -54,3 +54,28 @@ def percentage(sub, all):
     """
 
     return int((sub * 100) / all)
+
+
+def expect(msg, what: list):
+    """Expect one of the input from the given list. Repeat it infinitely.
+
+    Args:
+        msg (str): This message will be showed before input field.
+        what (list): List of expected input
+
+    Returns:
+        *: Inputed data.
+
+    STDOUT:
+        Prints message:
+        {msg}
+
+    """
+
+    data = None
+
+    while data not in what:
+        print(msg, end="")
+        data = input()
+
+    return data

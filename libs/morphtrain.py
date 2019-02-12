@@ -7,6 +7,8 @@ class MorphologyRecognizeTrainer:
 
     Properties:
         db (libs.DB): Main database
+        gcreader (?): One of readers defined in libs/ud to read GC data (set by
+            loadData method).
         maincoll (Collection): Collection where train data will be uploaded.
         tempcoll (Collection): Collection for temporary/trash data.
         logger (libs.Logger)
@@ -101,6 +103,8 @@ class MorphologyRecognizeTrainer:
 
         """
 
+        self.gcreader = gcreader
+
         self.tempcoll = db.createCollection(db.TEMPORARY)
 
         self.log(f"Created {self.tempcoll.name} as temp collection.\n")
@@ -115,9 +119,10 @@ class MorphologyRecognizeTrainer:
 
         while counter < limit:
             line = gcreader.nextLine()
-            counter += 1
             if counter < offset:
                 continue
+            else:
+                counter += 1
             if line["type"] != gcreader.DATALINE:
                 continue
 
@@ -137,3 +142,10 @@ class MorphologyRecognizeTrainer:
                 "record": record,
                 "counter": counter
             }
+
+    def close(self):
+        """Delete all temporary collections and close db cursors.
+        """
+
+        self.db.drop(self.db.tempcoll.name)
+        self.db.close()

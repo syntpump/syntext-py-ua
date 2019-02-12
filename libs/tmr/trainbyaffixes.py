@@ -13,7 +13,7 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
     rules. It'll also create 'static' rules for POSes that have no declension
     property and 'exception' rules for words that are too different from
     others, so no connections can be found.
-    
+
     Iteration function for this trainer is nextXPOS method.
 
     """
