@@ -34,9 +34,7 @@ Name             Default     Description
                              ...
                              Default is
                              libs.morphology.MorphologyRecognizer.selectFirst
---priority ...   None        Priority list in JSON format is it documented in
-                             MorhologyRecognizer module. Don't forget to
-                             escape quotes!
+--priority ...   None        Path to .json file with priority list.
 --limit ...      0           Limit of tokens to be processed. Set to '0' to set
                              it to infinite.
 --offset ...     0           Skip first N tokens from UD file you've specified.
@@ -79,7 +77,7 @@ reader = getattr(import_module("libs.ud." + reader[0]), reader[1])(
 
 priorityList = None
 if argv.has("--priority"):
-    priorityList = json.loads(argv.get("--priority", default=None))
+    priorityList = json.load(open(argv.get("--priority", default=None)))
 
 limit = int(argv.get("--limit", default="0"))
 offset = int(argv.get("--offset", default="0"))
