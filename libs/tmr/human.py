@@ -13,7 +13,7 @@ from bson import ObjectId
 
 
 class HumanTrainer(MorphologyRecognizeTrainer):
-    """This trainer can analyze errors in recognition and allow use to create
+    """This trainer can analyze errors in recognition and allow user to create
     new rules.
 
     Properties:
@@ -287,7 +287,6 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
         print("Rule inserted:")
         pprint(inserted, indent=4, compact=True)
-
 
 
 class RepeatException(Exception):
