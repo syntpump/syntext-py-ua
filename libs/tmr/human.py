@@ -112,7 +112,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
                             print(
                                 f"Recognized as {appRes['upos']} "
-                                f"{appRes['xpos']}."
+                                f"{appRes['xpos']} (correct is {xpos} {upos})."
                             )
 
                             if xpos == appRes["xpos"]:
