@@ -3,6 +3,7 @@ appropriate rule in DB and returns you the result.
 """
 
 from .arrproc import containesSupsetDict
+import strproc
 
 
 class MorphologyRecognizer:
@@ -152,6 +153,19 @@ class MorphologyRecognizer:
         """
 
         token = token.lower()
+
+        if strproc.hasNonUkrainian(token):
+            return {
+                "xpos": "X",
+                "upos": "X"
+            }
+
+        if strproc.isPunct(token):
+            return {
+                "xpos": "PUNCT",
+                "upos": "U"
+            }
+
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]
         query = None  # Response from DB
         result = None  # Result rule
