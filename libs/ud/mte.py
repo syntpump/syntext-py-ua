@@ -48,7 +48,7 @@ class MTEParser:
         try:
 
             block = self.data[tag[0]]
-            feats["upos"] = block["upos"]
+            feats["name"] = block["upos"]
 
             for i, letter in enumerate(tag[1:]):
                 prop = block["attrs"][i]
