@@ -16,11 +16,11 @@ REMARKS = r'[\u007E\u0040\u003F\u0021\u0026\u005E\u002A\u002C]'
 REBRACKETS = r'[[\]()\{}]'
 RECOLONS = r'[:;]'
 # Quotation marks
-REQUOT = r'[\u2018\u2019\u201C\u201D\u0022]'
+REQUOT = r'[\u2018\u2019\u201C\u201D\u0022\u00AB\u00BB]'
 RESLASH = r'[\u002F\u005C\u007C\u00A6]'
 REPUNCT = (
     fr'{REDASHSET}|{REELLIPSIS}|{REMARKS}|{REQUOT}|{RECOLONS}|{RESLASH}|'
-    fr'{REBRACKETS}'
+    fr'{REBRACKETS}|{REQUOT}'
 )
 RESPACE = r'[\u2003\u2002\u0020]'
 # List of symbols that often occurs near the decimals (e.g "±5%"")
@@ -29,9 +29,10 @@ REMATH = r'[\u002B\u005C\u002D\u00D7\u00F7\u2213\u00B1]'
 # Symbols that can separate two numbers: "5..8", "5/8", "5-8"
 RENUMSEP = rf'{REELLIPSIS}|{REDASHSET}|{RECOLONS}|{RESLASH}|{REMATH}'
 RECURRENCY = r'[\u20A0-\u20CF\u00A2-\u00A5\u0024]'
+REAPOSTROPHE = f'\'"’'
 
-# List of all ukrainian symbols
-RECYRRUA = r'[А-ЩЬЮ-щьюяіїґєІЇҐЄ]'
+# List of all Ukrainian symbols + dashes + apostrophes
+RECYRRUA = rf'[А-ЩЬЮ-щьюяіїґєІЇҐЄ{REDASH}{REAPOSTROPHE}]'
 
 # Regex for western smiles
 REWSMILE = (
@@ -210,7 +211,7 @@ def isPunct(token) -> bool:
 
     global REPUNCT
 
-    return not reCoversEntire(token, regex=getCompiled(f"({REPUNCT})+"))
+    return reCoversEntire(token, regex=getCompiled(f"({REPUNCT})+"))
 
 
 def isSym(token) -> bool:
@@ -229,4 +230,4 @@ def isSym(token) -> bool:
 
     global RESPECIAL
 
-    return not reCoversEntire(token, regex=getCompiled(RESPECIAL + "+"))
+    return reCoversEntire(token, regex=getCompiled(RESPECIAL + "+"))
