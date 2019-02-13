@@ -65,11 +65,10 @@ trainer = getattr(import_module("libs.tmr." + trainer[0]), trainer[1])(
     ),
     # POSes which don't declense. Remember them as exceptions.
     staticposes=[
-        "ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "SCONJ", "INTJ",
-        "PUNCT"
+        "ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "SCONJ", "INTJ"
     ],
     # POSes which can be recognized automatically, skip them.
-    ignoreposes=["SYM", "X"],
+    ignoreposes=["SYM", "X", "PUNCT"],
     testenabled=True if argv.has("-test") else False,
     settings=argv.getdict()
 )
