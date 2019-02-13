@@ -3,7 +3,7 @@ appropriate rule in DB and returns you the result.
 """
 
 from .arrproc import containesSupsetDict
-import strproc
+import libs.strproc as strproc
 
 
 class MorphologyRecognizer:
@@ -149,28 +149,16 @@ class MorphologyRecognizer:
                     "xpos": "..."
                 }
                 If XPOS wasn't recognized, returns None.
+                Returns list of rules if one exist.
 
         """
 
         token = token.lower()
 
-        if strproc.isSym(token):
-            return {
-                "xpos": "SYM",
-                "upos": "X"
-            }
-
-        if strproc.isPunct(token):
-            return {
-                "xpos": "PUNCT",
-                "upos": "U"
-            }
-
-        if strproc.hasNonUkrainian(token):
-            return {
-                "xpos": "X",
-                "upos": "X"
-            }
+        special = self.recognizeSpecial(token)
+        if special:
+            return special if applierFunc else [special]
+        del special
 
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]
         query = None  # Response from DB
@@ -200,6 +188,39 @@ class MorphologyRecognizer:
                     result.update(priorityList[xpos])
 
         return result
+
+    def recognizeSpecial(self, token):
+        """Recognize tokens where not db querying are needed (sym, punct etc.)
+
+        Args:
+            token (str): Token to be recognized.
+
+        Returns:
+            dict: Rule for token.
+                {
+                    "xpos": ...,
+                    "upos": ...
+                }
+
+        """
+
+        if strproc.isPunct(token):
+            return {
+                "upos": "PUNCT",
+                "xpos": "U"
+            }
+
+        if strproc.isSym(token):
+            return {
+                "xpos": "SYM",
+                "upos": "X"
+            }
+
+        if strproc.hasNonUkrainian(token):
+            return {
+                "xpos": "X",
+                "upos": "X"
+            }
 
     @staticmethod
     def selectFirst(bundle, token):
