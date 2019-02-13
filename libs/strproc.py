@@ -1,6 +1,11 @@
 import re
 
 
+# Compiled regexps will be collected here. They can be accessed by their body
+# as the key.
+RECOMPILED = dict()
+
+
 # These string constants can be used for build regexes.
 
 REDASHSET = r'[\u2012-\u2015\u002D]'
@@ -43,17 +48,13 @@ def tokenize(sentence):
         list: List of tokens.
 
     Globals:
-        RETOKENS: This function using RETOKENS which may be string at first and
-            converts it to compiled regex, so no compiling may be needed in
-            future.
+        RETOKENS: Regex for token in sentence.
 
     """
 
     global RETOKENS
-    if type(RETOKENS) is str:
-        RETOKENS = re.compile(RETOKENS)
 
-    return RETOKENS.findall(sentence)
+    return getCompiled(RETOKENS).findall(sentence)
 
 
 def groupEndings(words):
@@ -86,3 +87,90 @@ def groupEndings(words):
             rotate(words)
         )
     )
+
+
+def getCompiled(reg):
+    """Returns compiled regex from RECOMPILED if it exists. Compile it and
+    return otherwise.
+
+    Args:
+        reg (str): Regex to be compiled.
+
+    Returns:
+        _sre.SRE_Pattern, compiled pattern
+
+    Global:
+        RECOMPILED: Dictionary with compiled expressions.
+
+    """
+
+    global RECOMPILED
+
+    if reg not in RECOMPILED:
+        RECOMPILED[reg] = re.compile(reg)
+
+    return RECOMPILED[reg]
+
+
+def reCoversEntire(string, regex) -> bool:
+    """Return True if the given regex covers entire string.
+
+    Args:
+        string (str): String to be checked.
+        regex (_sre.SRE_Match, compiled regex)
+
+    Returns:
+        bool
+
+    """
+
+    search = regex.search(string)
+
+    if not search:
+        return False
+    else:
+        span = search.span()
+        if span[0] == 0 and span[1] == len(string):
+            return True
+        else:
+            return False
+
+
+def hasNonUkrainian(string) -> bool:
+    """Check if the given string has the characters out of Ukrainian alphabet.
+
+    Args:
+        string (str): String to checked.
+
+    Returns:
+        bool
+
+    Globals:
+        RECYRRUASET: Set of Ukrainian characters.
+
+    """
+
+    global RECYRRUA
+
+    return not reCoversEntire(string, regex=getCompiled(RECYRRUA + "+"))
+
+
+def isPunct(string) -> bool:
+    """Check if the given string is punctuation.
+
+    Args:
+        string (str): String to be checked.
+
+    Returns:
+        bool
+
+    Globals:
+        CREPUNCT: Compiled set of REPUNCT.
+            (Variable will be created.)
+        RECYRRUA: String to be compiled.
+
+    """
+
+    global REPUNCT
+
+    return not reCoversEntire(string, regex=getCompiled(f"({REPUNCT})+"))
