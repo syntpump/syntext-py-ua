@@ -6,12 +6,17 @@ be given access to nextLine() and nextSentence() methods.
 """
 
 from ..gc import GCReader
+from .mte import MTEParser
 
 
 class ConlluReader(GCReader):
     """Use this class to read and parse Universal Dependencies data in CoNLL-U
     format.
     """
+
+    def __init__(self):
+        GCReader.__init__(self)
+        self.mte = MTEParser()
 
     def parseFeats(self, line):
         """Convert FEATS line to a dict object. The FEATS field contains a list
@@ -294,3 +299,21 @@ class ConlluReader(GCReader):
         self.file.seek(cursor)
 
         return respond if respond else default
+
+    def encodeXPOS(self, tag):
+        """Convert XPOSes used in CoNLL-U to dict of properties.
+
+        Args:
+            tag (str): Tag to be processed.
+
+        Returns:
+            dict: Properties of this XPOS. Example:
+                "Ccs" -> {
+                    'upos': 'Conjunction',
+                    'Type': 'coordinating',
+                    'Formation': 'simple'
+                }
+
+        """
+
+        return self.mte.parse(tag)
