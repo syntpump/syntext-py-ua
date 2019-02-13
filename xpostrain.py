@@ -113,5 +113,6 @@ try:
     while True:
         msg = next(stream)
         print(msg)
-except StopIteration:
+except (StopIteration, KeyboardInterrupt):
+    trainer.db.drop(trainer.tempcoll.name)
     print("End of the training.")

@@ -120,6 +120,7 @@ class MorphologyRecognizeTrainer:
         while counter < limit:
             line = gcreader.nextLine()
             if counter < offset:
+                offset -= 1
                 continue
             else:
                 counter += 1

@@ -110,25 +110,29 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                                 token, applier, priorityList
                             )
 
-                            print(
-                                f"Recognized as {appRes['upos']} "
-                                f"{appRes['xpos']}."
-                            )
-
-                            if xpos == appRes["xpos"]:
-                                ruleType = (
-                                    recogn['type']
-                                    if recogn['type'] else "<unknown>"
-                                )
+                            if appRes:
                                 print(
-                                    "Recognized correctly. "
-                                    f"Type of rule: {ruleType}\n"
+                                    f"Recognized as {appRes['upos']} "
+                                    f"{appRes['xpos']} "
+                                    f"(correct is {xpos} {upos})."
                                 )
-                                continue
-                            else:
-                                mistakeExists = True
 
-                            if xpos in keyExtract(result, "xpos"):
+                                if xpos == appRes["xpos"]:
+                                    ruleType = (
+                                        recogn['type']
+                                        if recogn['type'] else "<unknown>"
+                                    )
+                                    print(
+                                        "Recognized correctly. "
+                                        f"Type of rule: {ruleType}\n"
+                                    )
+                                    continue
+                                else:
+                                    mistakeExists = True
+                            else:
+                                print("Token was not recognized at all.")
+
+                            if result and xpos in keyExtract(result, "xpos"):
                                 print(
                                     "Recognizing of this token may be "
                                     "improved. Here's the DB output:"
