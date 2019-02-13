@@ -29,8 +29,38 @@ REMATH = r'[\u002B\u005C\u002D\u00D7\u00F7\u2213\u00B1]'
 # Symbols that can separate two numbers: "5..8", "5/8", "5-8"
 RENUMSEP = rf'{REELLIPSIS}|{REDASHSET}|{RECOLONS}|{RESLASH}|{REMATH}'
 RECURRENCY = r'[\u20A0-\u20CF\u00A2-\u00A5\u0024]'
+
 # List of all ukrainian symbols
 RECYRRUA = r'[А-ЩЬЮ-щьюяіїґєІЇҐЄ]'
+
+# Regex for western smiles
+REWSMILE = (
+    r"[',|>d0|{}3<>OD]*"  # Hat
+    r"[*:=X8;#%\-‑B]*"  # Eyes
+    r"['\"]*"  # Tears
+    r"[\-‑~^]*"  # Nose
+    r"[)(3&#\\\/O@<>\]\[}{cD\-|PÞ$0*×,SJ]*"  # Mouth
+    r"[\.l:]*"  # Chin
+)
+
+# Regex for basic eastern smiles. Regex for all eastern smiles might be too
+# complicated to use it.
+REESMILEBASIC = (
+    r"[<?\\\/]?"  # Left hand
+    r"[({]*"  # Left cheek
+    r"[#;d*]?"  # Ear
+    r"[<>^-~-・+°=?'\"\.]"  # Eye
+    r"[_\-.oO·;+=]?"  # Mouth/nose
+    r"[<>^-~-・+°=?'\"\.]"  # Eye
+    r"[#;b*]?"  # Ear
+    r"[)}]*"  # Right cheek
+    r"[>?\\\/]?"  # RIght hand
+)
+
+# Formal notation of smile like :smile: or :moon:
+REFORMALSMILE = r":\w+:"
+
+# Regex for tokens in sentence
 RETOKENS = (
     fr'(?:\d+{RENUMSEP}\d+)'
     fr'|(?:{RENUM}*{RECURRENCY}*\d+{RECURRENCY}*{RENUM}*)|'
