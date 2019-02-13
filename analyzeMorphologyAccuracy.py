@@ -79,7 +79,7 @@ reader = getattr(import_module("libs.ud." + reader[0]), reader[1])(
 
 priorityList = None
 if argv.has("--priority"):
-    priorityList = json.loads(argv.get("--priority", default=None))
+    priorityList = json.load(open(argv.get("--priority", default=None)))
 
 limit = int(argv.get("--limit", default="0"))
 offset = int(argv.get("--offset", default="0"))
