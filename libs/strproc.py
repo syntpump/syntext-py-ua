@@ -256,3 +256,52 @@ def isSmile(token) -> bool:
         reCoversEntire(token, regex=getCompiled(REWSMILE)) or
         reCoversEntire(token, regex=getCompiled(REESMILEBASIC))
     )
+
+
+def contextOf(sentence, r, n):
+    """Returns r-radius context of n-th token of the sentence.
+
+    Args:
+        sentence (list): List of tokens (consists of objects).
+        r (int): Radius of context.
+        n (int): Position of the center of the context.
+
+    Returns:
+        dict: Context within radius. Left side will be mirrored. Example:
+            let sentence [a, b, c, d, e, f, g]
+            for r=2 and n=0 dict becomes {
+                "left": [],
+                "center": a,
+                "right": [b, c]
+            }
+            for r=3 and n=2 dict becomes {
+                "left": [a, b],
+                "center": c,
+                "right": [d, e, f]
+            }
+
+    """
+
+    lRange = n - r if (n - r) >= 0 else 0
+
+    return {
+        "left": list(reversed(sentence[lRange:n])),
+        "center": sentence[n],
+        "right": sentence[n + 1:n + r + 1]
+    }
+
+
+def context(sentence, r):
+    """Returns generator of contexts of all tokens in the sentence.
+
+    Args:
+        sentence (list): List of tokens (consists of objects).
+        r (int): Radius of context.
+
+    Yields:
+        contextOf(sentence, r, n is iterable)
+
+    """
+
+    for i in range(len(sentence)):
+        yield contextOf(sentence, r, n=i)
