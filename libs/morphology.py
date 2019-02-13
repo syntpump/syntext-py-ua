@@ -154,9 +154,9 @@ class MorphologyRecognizer:
 
         token = token.lower()
 
-        if strproc.hasNonUkrainian(token):
+        if strproc.isSym(token):
             return {
-                "xpos": "X",
+                "xpos": "SYM",
                 "upos": "X"
             }
 
@@ -164,6 +164,12 @@ class MorphologyRecognizer:
             return {
                 "xpos": "PUNCT",
                 "upos": "U"
+            }
+
+        if strproc.hasNonUkrainian(token):
+            return {
+                "xpos": "X",
+                "upos": "X"
             }
 
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]

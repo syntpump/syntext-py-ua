@@ -35,11 +35,11 @@ RECYRRUA = r'[А-ЩЬЮ-щьюяіїґєІЇҐЄ]'
 
 # Regex for western smiles
 REWSMILE = (
-    r"[',|>d0|{}3<>OD]*"  # Hat
-    r"[*:=X8;#%\-‑B]*"  # Eyes
+    r"[',|>dD0|{}3<>O]*"  # Hat
+    r"[*:=xX8;#%\-‑Bb]*"  # Eyes
     r"['\"]*"  # Tears
     r"[\-‑~^]*"  # Nose
-    r"[)(3&#\\\/O@<>\]\[}{cD\-|PÞ$0*×,SJ]*"  # Mouth
+    r"[)(3&#\\\/Oo@<>\]\[}{cCdD\-|PÞ$0*×,SJ]*"  # Mouth
     r"[\.l:]*"  # Chin
 )
 
@@ -48,11 +48,11 @@ REWSMILE = (
 REESMILEBASIC = (
     r"[<?\\\/]?"  # Left hand
     r"[({]*"  # Left cheek
-    r"[#;d*]?"  # Ear
+    r"[#;dD*]?"  # Ear
     r"[<>^-~-・+°=?'\"\.]"  # Eye
-    r"[_\-.oO·;+=]?"  # Mouth/nose
+    r"[_\-.oO0·;+=]?"  # Mouth/nose
     r"[<>^-~-・+°=?'\"\.]"  # Eye
-    r"[#;b*]?"  # Ear
+    r"[#;bB*]?"  # Ear
     r"[)}]*"  # Right cheek
     r"[>?\\\/]?"  # RIght hand
 )
@@ -66,6 +66,15 @@ RETOKENS = (
     fr'|(?:{RENUM}*{RECURRENCY}*\d+{RECURRENCY}*{RENUM}*)|'
     fr'{REPUNCT}|[\w{REDASH}\u0301]+'
 )
+
+# Simplified regex for URLs: protocol, ww?, domain, ...
+REURL = r"^(.+://)?(ww.\.)?(\w+\.).*$"
+
+# Simplified regex for emails
+REEMAIL = r"^.*@.*$"
+
+# Set of special characters
+RESPECIAL = r"[!@#$%^&*(),.?\"':{}|<>]"
 
 
 def tokenize(sentence):
@@ -166,11 +175,11 @@ def reCoversEntire(string, regex) -> bool:
             return False
 
 
-def hasNonUkrainian(string) -> bool:
+def hasNonUkrainian(token) -> bool:
     """Check if the given string has the characters out of Ukrainian alphabet.
 
     Args:
-        string (str): String to checked.
+        token (str): String to checked.
 
     Returns:
         bool
@@ -182,25 +191,42 @@ def hasNonUkrainian(string) -> bool:
 
     global RECYRRUA
 
-    return not reCoversEntire(string, regex=getCompiled(RECYRRUA + "+"))
+    return not reCoversEntire(token, regex=getCompiled(RECYRRUA + "+"))
 
 
-def isPunct(string) -> bool:
+def isPunct(token) -> bool:
     """Check if the given string is punctuation.
 
     Args:
-        string (str): String to be checked.
+        token (str): String to be checked.
 
     Returns:
         bool
 
     Globals:
-        CREPUNCT: Compiled set of REPUNCT.
-            (Variable will be created.)
-        RECYRRUA: String to be compiled.
+        REPUNCT: Set of punctuation
 
     """
 
     global REPUNCT
 
-    return not reCoversEntire(string, regex=getCompiled(f"({REPUNCT})+"))
+    return not reCoversEntire(token, regex=getCompiled(f"({REPUNCT})+"))
+
+
+def isSym(token) -> bool:
+    """Check if token is SYM.
+
+    Args:
+        token (str)
+
+    Returns:
+        bool
+
+    Globals:
+        RESPECIAL: Set of special characters
+
+    """
+
+    global RESPECIAL
+
+    return not reCoversEntire(token, regex=getCompiled(RESPECIAL + "+"))
