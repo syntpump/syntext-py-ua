@@ -231,3 +231,28 @@ def isSym(token) -> bool:
     global RESPECIAL
 
     return reCoversEntire(token, regex=getCompiled(RESPECIAL + "+"))
+
+
+def isSmile(token) -> bool:
+    """Check if token is smile or at least smile notation.
+    (It's about :smiles_between_doublecolons:).
+
+    Args:
+        token (str)
+
+    Returns:
+        bool
+
+    Globals
+        REFORMALSMILE, REWSMILE, REESMILEBASIC: Sets of smiles
+    """
+
+    global REFORMALSMILE
+    global REFORMALSMILE
+    global REESMILEBASIC
+
+    return (
+        reCoversEntire(token, regex=getCompiled(REFORMALSMILE)) or
+        reCoversEntire(token, regex=getCompiled(REWSMILE)) or
+        reCoversEntire(token, regex=getCompiled(REESMILEBASIC))
+    )
