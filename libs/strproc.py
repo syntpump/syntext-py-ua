@@ -300,8 +300,12 @@ def context(sentence, r):
 
     Yields:
         contextOf(sentence, r, n is iterable)
+        i (int): Number of token
 
     """
 
     for i in range(len(sentence)):
-        yield contextOf(sentence, r, n=i)
+        yield {
+            **contextOf(sentence, r, n=i),
+            **{"i": i}
+        }
