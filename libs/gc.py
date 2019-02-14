@@ -27,6 +27,8 @@ class GCReader:
     FORMNAME = 'form'
     # Name of field which contains lemma.
     LEMMANAME = 'lemma'
+    # Name of field which contains token dict
+    TOKENNAME = 'token'
 
     def __init__(self, fp, ignoreComments=False, strict=True):
         """Open the file for parsing and set cursor to 0.

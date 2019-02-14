@@ -231,7 +231,10 @@ class ConlluReader(GCReader):
 
         """
 
-        return line["data"][prop]
+        if prop == "data":
+            return line["data"]
+        else:
+            return line["data"][prop]
 
     def nextSentence(self):
         """Parse the next sentence.
