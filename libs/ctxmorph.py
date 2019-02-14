@@ -8,7 +8,20 @@ from ctx19.parsers import Contextual19Parser
 
 class ContextualProcessor:
     """Contains methods for processing sentences. DB collection with rules
-    needed.
+    needed for initialization.
+
+    Properties:
+        collection (Collection): Collection for Ctx19 rules.
+        recognizer (MoprhologyRecognizer)
+        applier (function): Applier function for MorphologyRecognizer.
+        priority (dict): Priority list for MorphologyRecognizer.
+        tagparser (class): Class with 'parse' function which can parse XPOSes
+           from DB.
+        rulescoll (Collection): A pymongo Collection that will be used for
+            contextual correcting. It must contains rules in Ctx19 object
+            representation.
+        ctx19 (Contextual19Parser): Parser for Ctx19
+
     """
 
     def __init__(
