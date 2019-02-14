@@ -14,8 +14,14 @@ class ConlluReader(GCReader):
     format.
     """
 
-    def __init__(self):
-        GCReader.__init__(self)
+    # Redefine constant from GCReader
+    TOKENNAME = 'data'
+
+    def __init__(self, fp, ignoreComments=False, strict=True):
+        """Init the reader with arguments defined in base class.
+        """
+
+        super().__init__(fp, ignoreComments, strict)
         self.mte = MTEParser()
 
     def parseFeats(self, line):
