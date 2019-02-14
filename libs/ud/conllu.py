@@ -309,6 +309,31 @@ class ConlluReader(GCReader):
 
         return respond if respond else default
 
+    def getAttr(self, sentence, attribute, default=None):
+        """Extract property defined in comments from nextSentence() response.
+
+        Args:
+            sentence (dict): Response if nextSentence() method.
+            attribute (str): Name of attribute you want to get.
+            default (*): Data that will be returned if not such attribute
+                specified.
+
+        Return:
+            str: Parameter you'd requested. If no such parameter specified,
+                None will be returned.
+
+        Raise:
+            KeyError, IndexError: These error will be raised if parameter is
+                not specified or incorrect attribute name was given.
+
+        """
+
+        for comment in sentence["comments"]:
+            if attribute in comment["data"]:
+                return comment["data"][attribute]
+
+        return None
+
     def encodeXPOS(self, tag):
         """Convert XPOSes used in CoNLL-U to dict of properties.
 
