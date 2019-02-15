@@ -262,7 +262,7 @@ def contextOf(sentence, r, n):
     """Returns r-radius context of n-th token of the sentence.
 
     Args:
-        sentence (list): List of tokens (consists of objects).
+        sentence (list of dicts): List of tokens.
         r (int): Radius of context.
         n (int): Position of the center of the context.
 
@@ -279,15 +279,37 @@ def contextOf(sentence, r, n):
                 "center": c,
                 "right": [d, e, f]
             }
+            Tokens' dicts will be updated with "__position" property, which
+            will enumerate context in that manner:
+            center is: C
+            numerals: A      B      |C|      D      E      F
+            sentence: -2     -1      0       1      2      3
 
     """
 
     lRange = n - r if (n - r) >= 0 else 0
 
     return {
-        "left": list(reversed(sentence[lRange:n])),
+        "left": [
+            # Token dict will be updated with `i` property, which is the
+            # position of the token in the sentence.
+            # Left context is reversed and negative-enumerated, so that tokens
+            # will be enumerated in this way:
+            #
+            #          |------------ n     (n=3, r=3)
+            # sentence: A   B   C   |D|    (here D is the center)
+            # numerals: -3  -2  -1  0
+            token.update({"__position": -i - 1})
+            for i, token
+            in enumerate(list(reversed(sentence[lRange:n])))
+        ],
         "center": sentence[n],
-        "right": sentence[n + 1:n + r + 1]
+        "right": [
+            # Right context will be positive-enumerated.
+            token.update({"__position": i + 1})
+            for i, token
+            in enumerate(sentence[n + 1:n + r + 1])
+        ],
     }
 
 
@@ -300,7 +322,7 @@ def context(sentence, r):
 
     Yields:
         contextOf(sentence, r, n is iterable)
-        i (int): Number of token
+        i (int): Number of token in sentence.
 
     """
 
