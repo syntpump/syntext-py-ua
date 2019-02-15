@@ -8,7 +8,7 @@ from ctx19.parsers import Contextual19Parser
 
 class ContextualProcessor:
     """Contains methods for processing sentences. DB collection with rules
-    needed for initialization.
+    are needed for initialization.
 
     Properties:
         collection (Collection): Collection for Ctx19 rules.
@@ -99,6 +99,9 @@ class ContextualProcessor:
         """
 
         for rule in self.rulescoll.find({}):
+            # First document in collection might be empty
+            if "if" not in rule or "then" not in rule:
+                continue
             sentence = self.ctx19.applyToSentence(
                 rule=rule,
                 sentence=sentence

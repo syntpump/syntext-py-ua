@@ -3,7 +3,6 @@
 
 from .ctxmorph import ContextualProcessor
 from .strproc import context
-from pprint import pprint
 
 
 class ContextualProcessorTrainer:
@@ -42,6 +41,8 @@ class ContextualProcessorTrainer:
             tagparser=tagparser
         )
         self.reader = reader
+        self.cmpkeys = cmpkeys
+        self.tagparser = tagparser
 
     def log(self, msg):
         """Call self.logger.write if self.logger is defined.
@@ -71,8 +72,8 @@ class ContextualProcessorTrainer:
         if self.logger:
             return self.logger.logjson(obj)
 
-    def differs(self, t1, t2):
-        """Generator function, yields bundle of properties that are different
+    def common(self, t1, t2):
+        """Generator function, yields bundle of properties that are equal
         in two given tokens.
 
         Args:
@@ -80,9 +81,33 @@ class ContextualProcessorTrainer:
 
         Yields:
             tuple:
-                [0] str: Name of the next different property.
-                [1] *: Value of this key in the first token.
-                [2] *: Value of this key in the second token.
+                [0] str: Name of the next equal property.
+                [1] *: Value of this key in both tokens.
+
+        """
+
+        for key in t1:
+            if (
+                # This key was allowed to be compared
+                key in self.cmpkeys and
+                # This key is both in t1 and t2
+                key in t2 and
+                t1[key] == t2[key]
+            ):
+                yield (key, t1[key])
+
+    def differs(self, t1, t2):
+        """Generator function, yields bundle of properties that are differs
+        in two given tokens.
+
+        Args:
+            t1, t2 (dicts): Two tokens to be compared.
+
+        Yields:
+            tuple:
+                [0] str: Name of the next equal property.
+                [1] *: Value of this key in first token.
+                [1] *: Value of this key in second token.
 
         """
 
@@ -128,6 +153,9 @@ class ContextualProcessorTrainer:
             ctxbase, ctxto (dicts): Contexts dict as defined in strproc.context
                 function.
 
+        Returns:
+            list: List of `if` block in Ctx19 rule.
+
         """
 
         # If base and gc centers are equal
@@ -136,9 +164,47 @@ class ContextualProcessorTrainer:
 
         ifblock = list()
 
-        pass
+        for tokenbase, tokento in zip(ctxbase["context"], ctxto["context"]):
+            # If sentences was tokenized correctly (that was checked in
+            # processSentence method), then tokenbase[__position] is equal
+            # to tokento[__position] always.
+            selectorRule = {
+                "__position": abs(tokenbase["__position"]),
+                "__name": (
+                    "previous"
+                    if tokenbase["__position"] < 0
+                    else "next"
+                )
+            }
+            for key, value in self.common(tokenbase, tokento):
+                # [bool, str] list are created according to Ctx19 assignment
+                # syntax in object rule representation style.
+                selectorRule[key] = [True, value]
 
-    def processSentence(self, sentence, text, r, parsetags=False):
+            ifblock.append(selectorRule)
+
+        return ifblock
+
+    def adjust(self, base, gc):
+        """Generate `then` block for Ctx19 rule for two tokens to make them
+        equal.
+
+        Args:
+            t1, t2 (dicts): Dicts of tokens.
+
+        Returns:
+            dict: Dict of `then` block.
+
+        """
+
+        then = dict()
+
+        for key, vbase, vgc in self.differs(base, gc):
+            then[key] = vgc
+
+        return then
+
+    def processSentence(self, sentence, text, r, parseTags=False):
         """Recognize POSes of the sentence by MorphologyRecognizer and
         compare it with the given one.
 
@@ -151,9 +217,12 @@ class ContextualProcessorTrainer:
 
         """
 
+        rules = list()
+
+        # Tag sentence using MorphologyRecognizer to compare it with GC one.
         tagged = self.ctxprocc.tagged(text)
 
-        # Compare two gc and tagged sentence
+        # Compare GC and tagged sentence
         for gctoken, recognized in zip(sentence, tagged):
             if (
                 # Some of tokens is missed, so lengths of lists differs
@@ -174,15 +243,27 @@ class ContextualProcessorTrainer:
         ))
 
         # Parse XPOS tags if needed
-        if parsetags:
+        if parseTags:
             for token in sentence:
-                token.update(self.parsetags(token["xpos"]))
+                token.update(self.tagparser.parse(token["xpos"]))
 
         for gc, tagged in zip(
             context(sentence, r), context(tagged, r)
         ):
-            rule = self.conclude(gc, tagged)
-            pprint(rule, indent=4, compact=True)
+            ifblock = self.conclude(gc, tagged)
+
+            # Do not add too small rules. Len of `if` must be less than 4:
+            # __position + __name + ...comparisons
+            if not ifblock or len(ifblock) < 4:
+                continue
+
+            thenblock = self.adjust(tagged["center"], gc["center"])
+
+            rules.append({
+                "if": ifblock, "then": thenblock
+            })
+
+        return rules
 
     def close(self):
         """Close DB cursor.
