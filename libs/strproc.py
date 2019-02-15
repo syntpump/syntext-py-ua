@@ -270,17 +270,23 @@ def contextOf(sentence, r, n):
         dict: Context within radius. Left side will be mirrored. Example:
             let sentence [a, b, c, d, e, f, g]
             for r=2 and n=0 dict becomes {
-                "left": [],
                 "center": a,
-                "right": [b, c]
+                "context": [
+                    {b, __position=1},
+                    {c, __position=2}
+                ]
             }
             for r=3 and n=2 dict becomes {
-                "left": [a, b],
                 "center": c,
-                "right": [d, e, f]
+                "context": [
+                    {b, __position=-1},
+                    {a, __position=-2},
+                    {d, __position=1},
+                    {e, __position=2},
+                    {f, __position=3}
+                ]
             }
-            Tokens' dicts will be updated with "__position" property, which
-            will enumerate context in that manner:
+            "__position" property enumerates context in that manner:
             center is: C
             numerals: A      B      |C|      D      E      F
             sentence: -2     -1      0       1      2      3
@@ -290,7 +296,8 @@ def contextOf(sentence, r, n):
     lRange = n - r if (n - r) >= 0 else 0
 
     return {
-        "left": [
+        "context": [
+            # This is left context.
             # Token dict will be updated with `i` property, which is the
             # position of the token in the sentence.
             # Left context is reversed and negative-enumerated, so that tokens
@@ -299,17 +306,16 @@ def contextOf(sentence, r, n):
             #          |------------ n     (n=3, r=3)
             # sentence: A   B   C   |D|    (here D is the center)
             # numerals: -3  -2  -1  0
-            token.update({"__position": -i - 1})
+            {**token, **{"__position": -i - 1}}
             for i, token
             in enumerate(list(reversed(sentence[lRange:n])))
-        ],
-        "center": sentence[n],
-        "right": [
-            # Right context will be positive-enumerated.
-            token.update({"__position": i + 1})
+        ] + [
+            # The right context will be positive-enumerated.
+            {**token, **{"__position": i + 1}}
             for i, token
             in enumerate(sentence[n + 1:n + r + 1])
         ],
+        "center": sentence[n],
     }
 
 

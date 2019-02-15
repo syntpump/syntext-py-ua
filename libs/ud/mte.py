@@ -57,10 +57,14 @@ class MTEParser:
                 else:
                     feats[prop] = block[prop][letter]
 
-        except KeyError:
-            raise TypeError(
-                "Something wrong with your XPOS. Please, check it with "
-                "MULTEXT-East Morphosyntactic Specifications, Version 4."
+        except (KeyError, IndexError):
+            raise IncorrectTag(
+                f"Something wrong with your XPOS: {tag}. Please, check it with"
+                " MULTEXT-East Morphosyntactic Specifications, Version 4."
             )
 
         return feats
+
+
+class IncorrectTag(Exception):
+    pass
