@@ -13,8 +13,8 @@ class ContextualProcessorTrainer:
     """
 
     def __init__(
-        self, db, reader, rulescoll, logger, tagparser, strictgc=False,
-        applier=None, priority=None
+        self, db, reader, rulescoll, logger, tagparser, cmpkeys,
+        strictgc=False, applier=None, priority=None
     ):
         """Init the trainer for contextual processor.
 
@@ -26,6 +26,8 @@ class ContextualProcessorTrainer:
                 rules.
             logger (libs.logs.Logger)
             tagparser (?): Class of XPOS tags parser.
+            cmpkeys (list): List of keys to be compared in tokens between two
+                contexts.
             applier, priority: Applier function and priority list for
                 MorphologyRecognizer.
 
@@ -36,9 +38,7 @@ class ContextualProcessorTrainer:
         self.reader = reader,
         self.collection = db.createCollection(db.EMENDPOS)
         self.ctxprocc = ContextualProcessor(
-            collection=rulescoll,
-            applier=applier,
-            priority=priority,
+            collection=rulescoll, applier=applier, priority=priority,
             tagparser=tagparser
         )
         self.reader = reader
@@ -71,19 +71,74 @@ class ContextualProcessorTrainer:
         if self.logger:
             return self.logger.logjson(obj)
 
-    def conclude(self, ctx1, ctx2):
-        """Compare two contexts and generate rule to make first context like
-        the second one.
+    def differs(self, t1, t2):
+        """Generator function, yields bundle of properties that are different
+        in two given tokens.
 
         Args:
-            ctx1, ctx2 (dicts): Contexts dict as defined in strproc.context
+            t1, t2 (dicts): Two tokens to be compared.
+
+        Yields:
+            tuple:
+                [0] str: Name of the next different property.
+                [1] *: Value of this key in the first token.
+                [2] *: Value of this key in the second token.
+
+        """
+
+        for key in t1:
+            if (
+                # This key was allowed to be compared
+                key in self.cmpkeys and
+                # This key is both in t1 and t2
+                key in t2 and
+                t1[key] != t2[key]
+            ):
+                yield (key, t1[key], t2[key])
+
+    def conclude(self, ctxbase, ctxto):
+        """Compare centers in base context `ctxbase` and gc context `ctxto` and
+        generate rules to make base center recognized correctly.
+
+        Here's how it works. Suppose, we have two contexts:
+        base: A1        B1        |C1|        D1        E1      (here radius=2)
+        gc:   A2        B2        |C2|        D2        E2
+        Here C1 and C2 is center tokens, C1 != C2 and every token was
+        recognized correctly (i.e. [A..Z]1 == [A..Z]2). So the next rule will
+        be generated:
+            if B1==B2 and A1==A2 and D1==D2 and E1==E2
+            then make C1 properties like in C2
+
+        Suppose now, we have these contexts:
+        base: A1        B1*       |C1|        D1        E1*
+        gc:   A2        B2        |C2|        D2        E2
+        Here tokens with star (*) was recognized incorrectly (i.e. B1!=B2 and
+        E1!=E2), so they cannot be used in context-based rules. That means that
+        next rule can be generated:
+            if A1==A2 and D1==D2
+            then C1 -> C2
+
+        Rules are being generated according to the following rules:
+            1. Every rule's `if` must contain at least two conditions.
+            2. Every condition must be made in correct-recognized context.
+            3. If base center and gc centers are equal, obviously no rule can
+               be made.
+
+        Args:
+            ctxbase, ctxto (dicts): Contexts dict as defined in strproc.context
                 function.
 
         """
 
+        # If base and gc centers are equal
+        if ctxbase["center"]["xpos"] == ctxto["center"]["xpos"]:
+            return None
+
+        ifblock = list()
+
         pass
 
-    def processSentence(self, sentence, text, r):
+    def processSentence(self, sentence, text, r, parsetags=False):
         """Recognize POSes of the sentence by MorphologyRecognizer and
         compare it with the given one.
 
@@ -91,6 +146,8 @@ class ContextualProcessorTrainer:
             sentence (list of dict): List of sentence with tokens.
             text (str): The same sentence but in simple string.
             r (int): Radius for comparing context.
+            parsetags (bool): Check to True if tags from sentences must be
+                parsed. self.tagparser will be used.
 
         """
 
@@ -108,10 +165,24 @@ class ContextualProcessorTrainer:
             ):
                 raise TaggingError([tagged, sentence])
 
+        # Extract tokens from GC data
+        sentence = list(map(
+            lambda token: self.reader.extractProperty(
+                token, self.reader.TOKENNAME
+            ),
+            sentence
+        ))
+
+        # Parse XPOS tags if needed
+        if parsetags:
+            for token in sentence:
+                token.update(self.parsetags(token["xpos"]))
+
         for gc, tagged in zip(
             context(sentence, r), context(tagged, r)
         ):
-            pprint(self.conclude(gc, tagged), indent=4, compact=True)
+            rule = self.conclude(gc, tagged)
+            pprint(rule, indent=4, compact=True)
 
     def close(self):
         """Close DB cursor.
