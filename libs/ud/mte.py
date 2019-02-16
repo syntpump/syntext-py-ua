@@ -11,6 +11,12 @@ class MTEParser:
 
     def __init__(self):
         """Open and parse mtexposdata.json file.
+
+        Raises:
+            FileNotFoundError: The file mtexposdata.json data is not exists.
+            PermissionError: You're not allowed to access to mtexposdata.json
+                file.
+
         """
 
         try:
@@ -36,9 +42,6 @@ class MTEParser:
             }
 
         Raises:
-            FileNotFoundError: The file mtexposdata.json data is not exists.
-            PermissionError: You're not allowed to access to mtexposdata.json
-                file.
             TypeError: Something wrong with your tagM.
 
         """
@@ -64,6 +67,53 @@ class MTEParser:
             )
 
         return feats
+
+    def stringify(self, props):
+        """Converts properties to XPOS tag.
+
+        Args:
+            props (dict): Properties. Example:
+                {   'name': 'Conjunction', 'Type': 'coordinating',
+                    'Formation': 'simple'}
+
+        Returns:
+            str: XPOS tag to this dict. Example: 'Ccs'
+
+        Raises:
+            KeyError: Some of properties in your props absent.
+            IndexError: There's error in mtexposdata.json file.
+
+        """
+
+        letter = str()
+        tag = str()
+
+        # Iterate data to find letter for UPOS specified in props
+        for posname, nested in self.data.items():
+            if nested["upos"] == props["name"]:
+                # Remember the letter
+                letter = posname
+                # Add it to the tag
+                tag += letter
+                break
+
+        if len(tag) == 0:
+            raise IncorrectTag(
+                "No POS name found for properties you specified."
+            )
+
+        for attr in self.data[letter]["attrs"]:
+            # Undefined properties must be denoted with a dash
+            if attr not in props:
+                tag += "-"
+                continue
+            for value in self.data[letter][attr]:
+                if self.data[letter][attr][value] == props[attr]:
+                    tag += value
+                    break
+
+        # Dashes for undefined properties are not necessary at the end
+        return tag.rstrip("-")
 
 
 class IncorrectTag(Exception):
