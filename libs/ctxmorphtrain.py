@@ -215,15 +215,19 @@ class ContextualProcessorTrainer:
             parsetags (bool): Check to True if tags from sentences must be
                 parsed. self.tagparser will be used.
 
-        """
+        Yields:
+            tuple: A generated rule.
+                [0]: `if` part;
+                [1]: `then` part.
 
-        rules = list()
+        """
 
         # Tag sentence using MorphologyRecognizer to compare it with GC one.
         tagged = self.ctxprocc.tagged(text)
 
         # Compare GC and tagged sentence
         for gctoken, recognized in zip(sentence, tagged):
+
             if (
                 # Some of tokens is missed, so lengths of lists differs
                 not gctoken or not recognized or
@@ -232,7 +236,14 @@ class ContextualProcessorTrainer:
                     gctoken, self.reader.FORMNAME
                 )
             ):
-                raise TaggingError([tagged, sentence])
+                raise TokenizationError(
+                    f"Tokenization error for sentence: {text}"
+                )
+
+            if "xpos" not in recognized:
+                raise TaggingError(
+                    f"Tag \"{recognized}\" was not recognized."
+                )
 
         # Extract tokens from GC data
         sentence = list(map(
@@ -259,9 +270,71 @@ class ContextualProcessorTrainer:
 
             thenblock = self.adjust(tagged["center"], gc["center"])
 
-            rules.append({
-                "if": ifblock, "then": thenblock
-            })
+            yield (ifblock, thenblock)
+
+    def generateRules(
+        self, r=3, parsetags=True, limit=0, offset=0, swallowexcs=None
+    ):
+        """This function fetch sentences in self.reader by its `nextSentence`
+        method, generate rules and write them to list.
+
+        Args:
+            r (int): Radius of contexts to analyze.
+            parsetags (bool): Set to True to parse XPOS tags in sentence using
+                self.tagparser.
+            limit, offset (int): Set limitations on rule generating.
+            swallowexcs (*): If your tag parser raises errors that can be
+                ignored, pass them here.
+                For example, if tag parser can't parse XPOS tag for some word
+                in context, the rule with this words can be just skipped.
+
+        Returns:
+            list of tuples: List of tuples:
+                tuple[0]: `if` block
+                tuple[1]: `then` block
+
+        """
+
+        if not limit:
+            limit = float("inf")
+
+        counter = 0
+
+        rules = list()
+
+        # All errors in sentence processing will be swallowed (except for
+        # EOFError and BreakException)
+        while True:
+
+            try:
+
+                sen = self.reader.nextSentence()
+
+                # processSentence returns list of rules for some sentence
+                for rule in self.processSentence(
+                    sentence=sen["sentence"],
+                    text=self.reader.getAttr(sen, "text"),
+                    r=r, parseTags=parsetags
+                ):
+
+                    counter += 1
+
+                    if counter < offset:
+                        raise ContinueException
+
+                    rules.append(rule)
+
+                    if counter > limit:
+                        raise BreakException
+
+            except (EOFError, BreakException):
+                break
+
+            except swallowexcs:
+                continue
+
+            except (ContinueException, TokenizationError, TaggingError):
+                continue
 
         return rules
 
@@ -273,4 +346,16 @@ class ContextualProcessorTrainer:
 
 
 class TaggingError(Exception):
+    pass
+
+
+class TokenizationError(Exception):
+    pass
+
+
+class BreakException(Exception):
+    pass
+
+
+class ContinueException(Exception):
     pass
