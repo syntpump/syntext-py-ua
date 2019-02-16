@@ -81,6 +81,9 @@ class ContextualProcessor:
                 applierFunc=self.applier,
                 priorityList=self.priority
             )
+            # Return empty dict if token was not recognized
+            if not recognized:
+                recognized = dict()
             recognized["word"] = token
             processed.append(recognized)
 
@@ -106,5 +109,9 @@ class ContextualProcessor:
                 rule=rule,
                 sentence=sentence
             )
+
+        # Modify XPOS tags in tokens according to their new properties
+        for token in sentence:
+            token["xpos"] = self.tagparser.stringify(token)
 
         return sentence
