@@ -3,6 +3,7 @@
 
 from .ctxmorph import ContextualProcessor
 from .strproc import context
+from functools import reduce
 
 
 class ContextualProcessorTrainer:
@@ -276,7 +277,7 @@ class ContextualProcessorTrainer:
         self, r=3, parsetags=True, limit=0, offset=0, swallowexcs=None
     ):
         """This function fetch sentences in self.reader by its `nextSentence`
-        method, generate rules and write them to list.
+        method and yield rules.
 
         Args:
             r (int): Radius of contexts to analyze.
@@ -288,10 +289,10 @@ class ContextualProcessorTrainer:
                 For example, if tag parser can't parse XPOS tag for some word
                 in context, the rule with this words can be just skipped.
 
-        Returns:
-            list of tuples: List of tuples:
-                tuple[0]: `if` block
-                tuple[1]: `then` block
+        Yields:
+            tuple: A Ctx19 rule:
+                [0]: `if` block
+                [1]: `then` block
 
         """
 
@@ -299,8 +300,6 @@ class ContextualProcessorTrainer:
             limit = float("inf")
 
         counter = 0
-
-        rules = list()
 
         # All errors in sentence processing will be swallowed (except for
         # EOFError and BreakException)
@@ -322,12 +321,12 @@ class ContextualProcessorTrainer:
                     if counter < offset:
                         raise ContinueException
 
-                    rules.append(rule)
+                    yield rule
 
                     if counter > limit:
-                        raise BreakException
+                        raise StopIteration
 
-            except (EOFError, BreakException):
+            except (EOFError):
                 break
 
             except swallowexcs:
@@ -336,7 +335,6 @@ class ContextualProcessorTrainer:
             except (ContinueException, TokenizationError, TaggingError):
                 continue
 
-        return rules
     def simplify(self, rules):
         """Looks through rules, search similar ones and merge them.
 
