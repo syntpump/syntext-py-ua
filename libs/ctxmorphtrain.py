@@ -403,7 +403,7 @@ class ContextualProcessorTrainer:
 
         Args:
             cond1, cond2 (dict): Dicts of selector.
-            save (int, float): If less then min(len(cond1), len(cond2))*save
+            save (int, float): If less, then min(len(cond1), len(cond2))*save
                 conditions was saved, function will return None.
                 For example:
                 save=0.5 means that more then half of the minimum-sized
@@ -507,6 +507,38 @@ class ContextualProcessorTrainer:
             lambda selector: len(selector) > 2,
             merged
         )
+
+    def train(
+        self, r=3, parsetags=True, limit=0, offset=0, swallowexcs=None,
+        saveCoeff=0.5
+    ):
+        """This will run train process: generate rules, compress them and
+        upload to DB.
+
+        Args:
+            r (int): Radius of context to be processed near token.
+            limit, offset (int): Limit and offset of sentences from GC.
+            swallowexcs: If the tagparser you've specified raises errors on
+                some sentences, this sentences can just be skipped. Specify
+                these errors here.
+            saveCoeff (int, float): Coefficient of saving conditions when
+                merging (compressing) two rules.
+                Example:
+                saveCoeff=0.5 means that at least half of the minimum-sized
+                    selector's condition must be saved.
+                saveCoeff=0.25 means one quarter
+                and so on.
+
+        """
+
+        rules = self.simplify(
+            rules=list(
+                self.generateRules(r, parsetags, limit, offset, swallowexcs)
+            ),
+            save=saveCoeff
+        )
+
+        self.collection.insert(list(rules))
 
     def close(self):
         """Close DB cursor.
