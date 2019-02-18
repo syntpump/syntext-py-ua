@@ -335,14 +335,16 @@ class ContextualProcessorTrainer:
             except (ContinueException, TokenizationError, TaggingError):
                 continue
 
-    def simplify(self, rules):
+    def simplify(self, rules, save):
         """Looks through rules, search similar ones and merge them.
 
         Args:
             rules (list): List of tuples: (`if`, `then`)
+            save (int, float): Saving coefficient (look for documentation in
+                merge's docstring).
 
         Returns:
-            filter or list of tuples: Generator of resulting rule list.
+            generator or list of tuples: Resulting rule list.
 
         Structure of `rules`:
         [  rules (list)
@@ -376,10 +378,19 @@ class ContextualProcessorTrainer:
                 if assign1 != assign2:
                     continue
 
-                cond1 = self.merge(cond1, cond2)
+                merged = self.merge(cond1, cond2, save)
 
-                # It is forbidden to change list while iterating, so just
-                # assign [j] with None. It'll be deleted later.
+                # If rules cannot be merged with the given save coefficient,
+                # skip it.
+                if not merged:
+                    continue
+
+                # Otherwise, change conditions of first rule.
+                rules[i][0] = merged
+
+                # And delete the second one. It is forbidden to change list
+                # while iterating, so just assign [j] with None. It'll be
+                # deleted later.
                 rules[j] = None
 
         return filter(
@@ -398,6 +409,10 @@ class ContextualProcessorTrainer:
                 save=0.5 means that more then half of the minimum-sized
                     selector must be saved.
                 save=0.25 means one quarter of minimum-sized selector.
+
+        Returns:
+            generator of list: Selectors of merged conditions.
+            bool None: If merged conditions does not meets saving coefficient.
 
         """
 
