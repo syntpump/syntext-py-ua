@@ -182,7 +182,8 @@ class ContextualProcessorTrainer:
                 # syntax in object rule representation style.
                 selectorRule[key] = [True, value]
 
-            ifblock.append(selectorRule)
+            if len(selectorRule) > 2:
+                ifblock.append(selectorRule)
 
         return ifblock
 
@@ -283,7 +284,7 @@ class ContextualProcessorTrainer:
             r (int): Radius of contexts to analyze.
             parsetags (bool): Set to True to parse XPOS tags in sentence using
                 self.tagparser.
-            limit, offset (int): Set limitations on rule generating.
+            limit, offset (int): Set limitations on sentences to be processed.
             swallowexcs (*): If your tag parser raises errors that can be
                 ignored, pass them here.
                 For example, if tag parser can't parse XPOS tag for some word
@@ -309,22 +310,23 @@ class ContextualProcessorTrainer:
 
                 sen = self.reader.nextSentence()
 
+                counter += 1
+
+                # Continue and break operators is not working in try...except
+                # blocks for some reason
+                if counter < offset:
+                    raise ContinueException
+
+                if counter > limit:
+                    raise StopIteration
+
                 # processSentence returns list of rules for some sentence
                 for rule in self.processSentence(
                     sentence=sen["sentence"],
                     text=self.reader.getAttr(sen, "text"),
                     r=r, parseTags=parsetags
                 ):
-
-                    counter += 1
-
-                    if counter < offset:
-                        raise ContinueException
-
                     yield rule
-
-                    if counter > limit:
-                        raise StopIteration
 
             except (EOFError):
                 break
@@ -372,7 +374,11 @@ class ContextualProcessorTrainer:
         for i, (cond1, assign1) in enumerate(rules):
 
             # Here `cond` is `condition`, `assign` is `assignment`
-            for j, (cond2, assign2) in enumerate(rules, start=i + 1):
+            for j, (cond2, assign2) in enumerate(rules):
+
+                # Skip first i elements.
+                if j <= i:
+                    continue
 
                 # Two rules is equal if they're reach the same properties
                 if assign1 != assign2:
@@ -385,13 +391,11 @@ class ContextualProcessorTrainer:
                 if not merged:
                     continue
 
-                # Otherwise, change conditions of first rule.
-                rules[i][0] = merged
+                # Change rule
+                rules[i] = (list(merged), assign1)
 
-                # And delete the second one. It is forbidden to change list
-                # while iterating, so just assign [j] with None. It'll be
-                # deleted later.
-                rules[j] = None
+                # And delete the second rule.
+                del rules[j]
 
         return filter(
             lambda obj: obj is not None,
@@ -454,6 +458,10 @@ class ContextualProcessorTrainer:
 
             """
 
+            # If two rules is absolutely equal, then return just one
+            if what == to:
+                return what
+
             result = list()
 
             # Unpack `what` list to `sel1` (from `what`) and to `sel2` (which
@@ -480,7 +488,7 @@ class ContextualProcessorTrainer:
                         continue
 
                     if sel1[key] == sel2[key]:
-                        equal[key] == sel1[key]
+                        equal[key] = sel1[key]
 
                 result.append(equal)
 
@@ -493,7 +501,8 @@ class ContextualProcessorTrainer:
             # Every selector contains `__position` and `__name` keys which
             # should not be added to total number.
             lambda total, selector: total + len(selector) - 2,
-            merged
+            # List; initial value
+            merged, 0
         ) <= min(
             # If save==0.5 than this condition will check if less than half of
             # the number of the original conditions was saved.
@@ -531,14 +540,21 @@ class ContextualProcessorTrainer:
 
         """
 
-        rules = self.simplify(
-            rules=list(
-                self.generateRules(r, parsetags, limit, offset, swallowexcs)
-            ),
-            save=saveCoeff
+        generated = self.generateRules(
+            r, parsetags, limit, offset, swallowexcs
         )
 
-        self.collection.insert(list(rules))
+        simplified = list()
+
+        for cond, assign in self.simplify(
+            rules=list(generated), save=saveCoeff
+        ):
+            simplified.append({
+                "if": cond,
+                "then": assign
+            })
+
+        self.collection.insert(simplified)
 
     def close(self):
         """Close DB cursor.
