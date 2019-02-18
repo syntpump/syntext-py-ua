@@ -117,11 +117,7 @@ class Params:
         di = dict()
 
         for key in self.bundle:
-            name = str()
-            if key[:2] == "--":
-                name = key[2:]
-            else:
-                name = key[1:]
+            name = key[2:] if key[:2] == "--" else key[1:]
             di[name] = self.bundle[key]
 
         return di
