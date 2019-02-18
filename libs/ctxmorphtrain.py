@@ -31,6 +31,13 @@ class ContextualProcessorTrainer:
             applier, priority: Applier function and priority list for
                 MorphologyRecognizer.
 
+        Properties:
+            db, reader, logger, cmpkeys, tagparser: Values you are passing to
+                init function.
+            collection (Collection): A collection in DB with EMENDPOS marker,
+                which are being used to upload rules.
+            ctxprocc (libs.ctxmorph.ContextualProcessor)
+
         """
 
         self.db = db
