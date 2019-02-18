@@ -338,6 +338,112 @@ class ContextualProcessorTrainer:
 
         return rules
 
+    def merge(self, cond1, cond2, save=0.5):
+        """Merge two conditions set with some coefficient of saving.
+
+        Args:
+            cond1, cond2 (dict): Dicts of selector.
+            save (int, float): If less then min(len(cond1), len(cond2))*save
+                conditions was saved, function will return None.
+                For example:
+                save=0.5 means that more then half of the minimum-sized
+                    selector must be saved.
+                save=0.25 means one quarter of minimum-sized selector.
+
+        """
+
+        def get(where, compareTo):
+            """Returns selector from `where` which ["__name"] and
+            ["__position"] properties is equal to `compareTo` ones.
+
+            Args:
+                compareTo (dict): Dict of selector.
+
+            Returns:
+                dict: Found selector.
+                bool None: If no matches.
+
+            """
+
+            for sel in where:
+                if (
+                    sel["__name"] == compareTo["__name"] and
+                    sel["__position"] == compareTo["__position"]
+                ):
+                    return sel
+
+            return None
+
+        def image(what, to):
+            """Return intersection of `what` and `to` which consists of
+            elements that meet this condition:
+                every what[A][B] == to[A][B]
+            Here A is iterable selector and B is iterable key of selector and
+            A with B is equal in right and left parts of equation at one
+            iteration.
+
+            Args:
+                what, to (list of dict): Selectors list to process.
+
+            Returns:
+                list: Resulting selectors list.
+
+            """
+
+            result = list()
+
+            # Unpack `what` list to `sel1` (from `what`) and to `sel2` (which
+            # is result of get(sel1, what) method execution)
+            for sel1, sel2 in [
+                (
+                    sel, get(what, sel)
+                )
+                for sel
+                in to
+            ]:
+
+                # Skip selector if it is not in `to` list
+                if not sel2:
+                    continue
+
+                # If selector exists in both rules, then leave only equal keys
+                # and skip different ones
+                equal = dict()
+
+                for key in sel1:
+
+                    if key not in sel2:
+                        continue
+
+                    if sel1[key] == sel2[key]:
+                        equal[key] == sel1[key]
+
+                result.append(equal)
+
+            return result
+
+        merged = image(cond1, cond2)
+
+        # This will calculate total number of conditions of `merged`.
+        if reduce(
+            # Every selector contains `__position` and `__name` keys which
+            # should not be added to total number.
+            lambda total, selector: total + len(selector) - 2,
+            merged
+        ) <= min(
+            # If save==0.5 than this condition will check if less than half of
+            # the number of the original conditions was saved.
+            len(cond1), len(cond2)
+        ) * 0.5:
+            return None
+
+        return filter(
+            # If selector contains less then 2 keys then it don't have any
+            # conditions. (Minus __position and __name).
+            lambda selector: len(selector) > 2,
+            merged
+        )
+
     def close(self):
         """Close DB cursor.
         """
