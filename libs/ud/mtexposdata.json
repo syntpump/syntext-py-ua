@@ -256,5 +256,8 @@
     },
     "X": {
     	"upos": "Residual"
+    },
+    "U": {
+    	"upos": "Punctuation"
     }
 }

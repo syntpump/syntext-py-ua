@@ -27,12 +27,14 @@ class GCReader:
     FORMNAME = 'form'
     # Name of field which contains lemma.
     LEMMANAME = 'lemma'
+    # Name of field which contains token dict
+    TOKENNAME = 'token'
 
-    def __init__(self, filepath=None, ignoreComments=False, strict=True):
+    def __init__(self, fp, ignoreComments=False, strict=True):
         """Open the file for parsing and set cursor to 0.
 
         Args:
-            filepath (str): Path to a file you want to read.
+            fp (file): File with GC data you want to parse.
             ignoreComments (bool): When this variable is set to True,
                 all comments in file will be ignored.
             strict (bool): Set this to True in order to check format strictly.
@@ -46,10 +48,7 @@ class GCReader:
 
         """
 
-        if not filepath:
-            raise TypeError("You need to provide a path to file with data.")
-
-        self.file = open(filepath, mode='r', encoding="utf-8")
+        self.file = fp
         self.ignoreComments = ignoreComments
         self.cursor = 0
         self.strict = strict

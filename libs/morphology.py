@@ -7,19 +7,22 @@ import libs.strproc as strproc
 
 
 class MorphologyRecognizer:
-    """This class contains methods for morhology processing.
+    """This class contains methods for morphology processing.
     """
 
-    def __init__(self, collection):
+    def __init__(self, collection, tagparser=None):
         """Init the recognizer with specified db connection.
 
         Args:
             collection (Collection): A Collection from pymongo that will be
                 used for rules searching.
+            tagparser (Class): Class with "parse" method which can parse XPOS
+                of the token.
 
         """
 
         self.collection = collection
+        self.tagparser = tagparser if tagparser else None
 
     def getRulesFor(self, token):
         """Guess all the rules that can be applied to this token.
@@ -187,6 +190,12 @@ class MorphologyRecognizer:
                 ):
                     result.update(priorityList[xpos])
 
+        # This will delete all the keys except upos and xpos and parse the XPOS
+        result = self.unwrapXPOS({
+            "upos": result["upos"],
+            "xpos": result["xpos"]
+        })
+
         return result
 
     def recognizeSpecial(self, token):
@@ -207,20 +216,42 @@ class MorphologyRecognizer:
         if strproc.isPunct(token):
             return {
                 "upos": "PUNCT",
-                "xpos": "U"
+                "xpos": "U",
+                "name": "Punctuation"
             }
 
         if strproc.isSym(token):
             return {
-                "xpos": "SYM",
-                "upos": "X"
+                "upos": "SYM",
+                "xpos": "X",
+                "name": "Residual"
             }
 
         if strproc.hasNonUkrainian(token):
             return {
                 "xpos": "X",
-                "upos": "X"
+                "upos": "X",
+                "name": "Residual"
             }
+
+    def unwrapXPOS(self, rule):
+        """Append properties of XPOS to the rule.
+
+        Args:
+            rule (dict): Rule with ["xpos"] property.
+
+        Returns:
+            {**rule, **parsedXPOS}
+
+        """
+
+        if self.tagparser:
+            return {
+                **rule,
+                **self.tagparser.parse(rule["xpos"])
+            }
+        else:
+            return rule
 
     @staticmethod
     def selectFirst(bundle, token):

@@ -70,7 +70,7 @@ while len(applierAddr) > 0:
 
 reader = argv.get("--reader").split(".")
 reader = getattr(import_module("libs.ud." + reader[0]), reader[1])(
-    filepath=argv.get("--path"),
+    fp=open(argv.get("--path")),
     ignoreComments=True,
     strict=False if argv.has("-unstrict") else True
 )

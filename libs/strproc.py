@@ -256,3 +256,84 @@ def isSmile(token) -> bool:
         reCoversEntire(token, regex=getCompiled(REWSMILE)) or
         reCoversEntire(token, regex=getCompiled(REESMILEBASIC))
     )
+
+
+def contextOf(sentence, r, n):
+    """Returns r-radius context of n-th token of the sentence.
+
+    Args:
+        sentence (list of dicts): List of tokens.
+        r (int): Radius of context.
+        n (int): Position of the center of the context.
+
+    Returns:
+        dict: Context within radius. Left side will be mirrored. Example:
+            let sentence [a, b, c, d, e, f, g]
+            for r=2 and n=0 dict becomes {
+                "center": a,
+                "context": [
+                    {b, __position=1},
+                    {c, __position=2}
+                ]
+            }
+            for r=3 and n=2 dict becomes {
+                "center": c,
+                "context": [
+                    {b, __position=-1},
+                    {a, __position=-2},
+                    {d, __position=1},
+                    {e, __position=2},
+                    {f, __position=3}
+                ]
+            }
+            "__position" property enumerates context in that manner:
+            center is: C
+            numerals: A      B      |C|      D      E      F
+            sentence: -2     -1      0       1      2      3
+
+    """
+
+    lRange = n - r if (n - r) >= 0 else 0
+
+    return {
+        "context": [
+            # This is left context.
+            # Token dict will be updated with `i` property, which is the
+            # position of the token in the sentence.
+            # Left context is reversed and negative-enumerated, so that tokens
+            # will be enumerated in this way:
+            #
+            #          |------------ n     (n=3, r=3)
+            # sentence: A   B   C   |D|    (here D is the center)
+            # numerals: -3  -2  -1  0
+            {**token, **{"__position": -i - 1}}
+            for i, token
+            in enumerate(list(reversed(sentence[lRange:n])))
+        ] + [
+            # The right context will be positive-enumerated.
+            {**token, **{"__position": i + 1}}
+            for i, token
+            in enumerate(sentence[n + 1:n + r + 1])
+        ],
+        "center": sentence[n],
+    }
+
+
+def context(sentence, r):
+    """Returns generator of contexts of all tokens in the sentence.
+
+    Args:
+        sentence (list): List of tokens (consists of objects).
+        r (int): Radius of context.
+
+    Yields:
+        contextOf(sentence, r, n is iterable)
+        i (int): Number of token in sentence.
+
+    """
+
+    for i in range(len(sentence)):
+        yield {
+            **contextOf(sentence, r, n=i),
+            **{"i": i}
+        }

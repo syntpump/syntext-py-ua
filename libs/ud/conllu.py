@@ -6,12 +6,23 @@ be given access to nextLine() and nextSentence() methods.
 """
 
 from ..gc import GCReader
+from .mte import MTEParser
 
 
 class ConlluReader(GCReader):
     """Use this class to read and parse Universal Dependencies data in CoNLL-U
     format.
     """
+
+    # Redefine constant from GCReader
+    TOKENNAME = 'data'
+
+    def __init__(self, fp, ignoreComments=False, strict=True):
+        """Init the reader with arguments defined in base class.
+        """
+
+        super().__init__(fp, ignoreComments, strict)
+        self.mte = MTEParser()
 
     def parseFeats(self, line):
         """Convert FEATS line to a dict object. The FEATS field contains a list
@@ -220,7 +231,10 @@ class ConlluReader(GCReader):
 
         """
 
-        return line["data"][prop]
+        if prop == "data":
+            return line["data"]
+        else:
+            return line["data"][prop]
 
     def nextSentence(self):
         """Parse the next sentence.
@@ -294,3 +308,46 @@ class ConlluReader(GCReader):
         self.file.seek(cursor)
 
         return respond if respond else default
+
+    def getAttr(self, sentence, attribute, default=None):
+        """Extract property defined in comments from nextSentence() response.
+
+        Args:
+            sentence (dict): Response if nextSentence() method.
+            attribute (str): Name of attribute you want to get.
+            default (*): Data that will be returned if not such attribute
+                specified.
+
+        Return:
+            str: Parameter you'd requested. If no such parameter specified,
+                None will be returned.
+
+        Raise:
+            KeyError, IndexError: These error will be raised if parameter is
+                not specified or incorrect attribute name was given.
+
+        """
+
+        for comment in sentence["comments"]:
+            if attribute in comment["data"]:
+                return comment["data"][attribute]
+
+        return None
+
+    def encodeXPOS(self, tag):
+        """Convert XPOSes used in CoNLL-U to dict of properties.
+
+        Args:
+            tag (str): Tag to be processed.
+
+        Returns:
+            dict: Properties of this XPOS. Example:
+                "Ccs" -> {
+                    'upos': 'Conjunction',
+                    'Type': 'coordinating',
+                    'Formation': 'simple'
+                }
+
+        """
+
+        return self.mte.parse(tag)
