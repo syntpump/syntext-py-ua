@@ -337,6 +337,57 @@ class ContextualProcessorTrainer:
                 continue
 
         return rules
+    def simplify(self, rules):
+        """Looks through rules, search similar ones and merge them.
+
+        Args:
+            rules (list): List of tuples: (`if`, `then`)
+
+        Returns:
+            filter or list of tuples: Generator of resulting rule list.
+
+        Structure of `rules`:
+        [  rules (list)
+            (  rule (tuple), len(rule) == 2
+                {  conditions (dict)
+                    {
+                        "__name": "previous",
+                        "__position": 1,
+                        "property": "value",
+                        ...
+                    },
+                    ...
+                },
+                {  assignments (dict)
+                    "afterproperty": "aftervalue"
+                }
+            ),
+            ...
+        ]
+
+        """
+
+        # This double loop will iterate list(rules) like in bubble sort
+        # algorithm.
+        for i, (cond1, assign1) in enumerate(rules):
+
+            # Here `cond` is `condition`, `assign` is `assignment`
+            for j, (cond2, assign2) in enumerate(rules, start=i + 1):
+
+                # Two rules is equal if they're reach the same properties
+                if assign1 != assign2:
+                    continue
+
+                cond1 = self.merge(cond1, cond2)
+
+                # It is forbidden to change list while iterating, so just
+                # assign [j] with None. It'll be deleted later.
+                rules[j] = None
+
+        return filter(
+            lambda obj: obj is not None,
+            rules
+        )
 
     def merge(self, cond1, cond2, save=0.5):
         """Merge two conditions set with some coefficient of saving.
