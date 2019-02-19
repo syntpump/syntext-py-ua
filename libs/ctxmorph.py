@@ -50,10 +50,18 @@ class ContextualProcessor:
         self.recognizer = MorphologyRecognizer(
             collection, tagparser=tagparser
         )
+        self.tagparser = tagparser
         self.applier = applier
         self.priority = priority
-        self.ctx19 = Contextual19Parser([])
+        self.ctx19 = Contextual19Parser()
         self.rulescoll = rulescoll
+
+        # Upload all the rules to Ctx19 parser
+        dbcursor = rulescoll.find({})
+        dbcursor.skip(1)
+
+        for rule in dbcursor:
+            self.ctx19.data.append(rule)
 
     def tagged(self, sentence):
         """Tokenize sentence and recognize morphology of each ones.
@@ -101,15 +109,7 @@ class ContextualProcessor:
 
         """
 
-        cursor = self.rulescoll.find({})
-        # The first document in collection is always empty
-        cursor.skip(1)
-        self.ctx19.data = cursor
-
-        self.ctx19.apply(sentence)
-
-        # Clear cursor
-        self.ctx19.data = None
+        sentence = self.ctx19.apply(sentence)
 
         # Modify XPOS tags in tokens according to their new properties
         for token in sentence:

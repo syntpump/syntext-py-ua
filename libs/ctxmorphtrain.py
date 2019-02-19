@@ -514,7 +514,7 @@ class ContextualProcessorTrainer:
             # If save==0.5 than this condition will check if less than half of
             # the number of the original conditions was saved.
             len(cond1), len(cond2)
-        ) * 0.5:
+        ) * save:
             return None
 
         return filter(
