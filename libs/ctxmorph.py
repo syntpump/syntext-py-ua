@@ -101,14 +101,15 @@ class ContextualProcessor:
 
         """
 
-        for rule in self.rulescoll.find({}):
-            # First document in collection might be empty
-            if "if" not in rule or "then" not in rule:
-                continue
-            sentence = self.ctx19.applyToSentence(
-                rule=rule,
-                sentence=sentence
-            )
+        cursor = self.rulescoll.find({})
+        # The first document in collection is always empty
+        cursor.skip(1)
+        self.ctx19.data = cursor
+
+        self.ctx19.apply(sentence)
+
+        # Clear cursor
+        self.ctx19.data = None
 
         # Modify XPOS tags in tokens according to their new properties
         for token in sentence:
