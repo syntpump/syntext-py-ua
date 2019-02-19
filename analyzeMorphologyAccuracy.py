@@ -44,7 +44,7 @@ Name             Default     Description
     raise SystemExit
 
 logger = Logger(
-    fp=open(argv.get("--logfile", default="amalog.md"), mode="a+"),
+    fp=open(argv.get("--logfile", default="amalog.md"), mode="a+", encoding="utf-8"),
     stream=sys.stdout
 )
 
@@ -72,7 +72,7 @@ while len(applierAddr) > 0:
 
 reader = argv.get("--reader").split(".")
 reader = getattr(import_module("libs.ud." + reader[0]), reader[1])(
-    fp=open(argv.get("--path")),
+    fp=open(argv.get("--path"), encoding="utf-8"),
     ignoreComments=True,
     strict=False if argv.has("-unstrict") else True
 )
