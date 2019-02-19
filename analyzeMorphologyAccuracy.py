@@ -5,6 +5,7 @@ from importlib import import_module
 from libs.ui import percentage
 from libs.logs import Logger
 import json
+import sys
 
 
 argv = Params()
@@ -42,15 +43,16 @@ Name             Default     Description
         )
     raise SystemExit
 
-print("Loading...\r")
+logger = Logger(
+    fp=open(argv.get("--logfile", default="amalog.md"), mode="a+"),
+    stream=sys.stdout
+)
+
+logger.output("Loading...")
 
 
 from libs.db import DB # noqa E402
 
-
-logger = Logger(
-    filepath=argv.get("--logfile", default="amalog.md")
-)
 
 requiered = ["path", "reader", "collection"]
 for require in requiered:
@@ -103,7 +105,7 @@ logger.write(f"Connected to {analyzer.recognizer.collection.name}\n")
 
 generator = analyzer.init()
 
-print(
+logger.output(
     "Loaded succesfully.\n"
     "Here you'll see the analyzing progress. Numbers in the brackets counts "
     "cases where applier function were unable to apply correct rule, even "
@@ -116,13 +118,15 @@ try:
         logger.logjson(
             next(generator)
         )
-        print(
-            f"{analyzer.CHECKED}\t"
-            f"{percentage(analyzer.CORRECT_XPOS, analyzer.CHECKED)}% "
-            f"({percentage(analyzer.IMPROVE_XPOS, analyzer.CHECKED)}%)\t"
-            f"{percentage(analyzer.CORRECT_UPOS, analyzer.CHECKED)}% "
-            f"({percentage(analyzer.IMPROVE_UPOS, analyzer.CHECKED)}%)",
-            end="\r"
+        logger.output(
+            (
+                f"{analyzer.CHECKED}\t"
+                f"{percentage(analyzer.CORRECT_XPOS, analyzer.CHECKED)}% "
+                f"({percentage(analyzer.IMPROVE_XPOS, analyzer.CHECKED)}%)\t"
+                f"{percentage(analyzer.CORRECT_UPOS, analyzer.CHECKED)}% "
+                f"({percentage(analyzer.IMPROVE_UPOS, analyzer.CHECKED)}%)"
+            ),
+            rewritable=True
         )
 except StopIteration:
     pass
@@ -131,4 +135,4 @@ except KeyboardInterrupt:
 finally:
     logger.write("\n")
 
-print("\nDone.")
+logger.output("\nDone.")

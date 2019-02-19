@@ -11,7 +11,7 @@ class MorphologyRecognizeTrainer:
             loadData method).
         maincoll (Collection): Collection where train data will be uploaded.
         tempcoll (Collection): Collection for temporary/trash data.
-        logger (libs.Logger)
+        logger (libs.Logger): Initialized Logger.
         staticposes (list): List of static POSes (if supported by this
             recognizer).
         ignoreposes (list): List of POSes to be ignored (if supported by this
@@ -25,7 +25,7 @@ class MorphologyRecognizeTrainer:
     poses = None
 
     def __init__(
-        self, db, settings, logger=None, staticposes=None, ignoreposes=None,
+        self, db, settings, logger, staticposes=None, ignoreposes=None,
         testenabled=False
     ):
         """Assign __init__ arguments to class property and create new
@@ -51,35 +51,9 @@ class MorphologyRecognizeTrainer:
         self.ignoreposes = ignoreposes
         self.testenabled = testenabled
 
-        self.log(f"Created {self.maincoll.name} as main collection.\n")
-
-    def log(self, msg):
-        """Call self.logger.write if self.logger is defined.
-
-        Args:
-            msg(str, int): Message to print.
-
-        Return:
-            ?: Result of Logger executing.
-
-        """
-
-        if self.logger:
-            return self.logger.write(msg)
-
-    def logjson(self, obj):
-        """Call self.logger.logjson if self.logger is defined.
-
-        Args:
-            obj(*): Any JSON-serializable object.
-
-        Return:
-            ?: Result of Logger executing.
-
-        """
-
-        if self.logger:
-            return self.logger.logjson(obj)
+        self.logger.write(
+            f"Created {self.maincoll.name} as main collection.\n"
+        )
 
     def loadData(self, db, gcreader, limit=0, offset=0):
         """Create temporary table in specified db and load tokens from gcreader
@@ -107,7 +81,9 @@ class MorphologyRecognizeTrainer:
 
         self.tempcoll = db.createCollection(db.TEMPORARY)
 
-        self.log(f"Created {self.tempcoll.name} as temp collection.\n")
+        self.logger.write(
+            f"Created {self.tempcoll.name} as temp collection.\n"
+        )
 
         if limit == 0:
             limit = float("inf")

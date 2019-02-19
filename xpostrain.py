@@ -1,6 +1,7 @@
 from libs.params import Params
 from libs.logs import Logger
 from importlib import import_module
+import sys
 
 
 argv = Params()
@@ -46,7 +47,12 @@ if not argv.has("--path"):
     argv.request("path", text="Provide a path to UD file")
 
 
-print("Loading...")
+logger = Logger(
+    fp=open(argv.get("--logfile", default="xpostrainlog.md"), mode="a+"),
+    stream=sys.stdout
+)
+
+logger.output("Loading...")
 
 
 from libs.db import DB # noqa E402
@@ -60,9 +66,7 @@ trainer = getattr(import_module("libs.tmr." + trainer[0]), trainer[1])(
         host=argv.get("--dbhost", default="atlas"),
         dbname="syntextua"
     ),
-    logger=Logger(
-        filepath=argv.get("--logfile", default="xpostrainlog.md")
-    ),
+    logger=logger,
     # POSes which don't declense. Remember them as exceptions.
     staticposes=[
         "ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "SCONJ", "INTJ"
@@ -75,7 +79,7 @@ trainer = getattr(import_module("libs.tmr." + trainer[0]), trainer[1])(
 
 reader = argv.get("--reader").split(".")
 
-print("loaded.")
+logger.output("loaded.")
 
 
 try:
@@ -97,13 +101,13 @@ try:
     )
     while True:
         counter = next(cursor)["counter"]
-        print(f"{counter} lines processed so far.", end="\r")
+        logger.output(f"{counter} lines processed so far.", rewritable=True)
 except (StopIteration, EOFError):
     pass
 finally:
     length = len(trainer.poses)
     trainer.log(f"Collected {length} XPOSes.\n")
-    print(f"\nCollected {length} XPOSes.\n")
+    logger.output(f"\nCollected {length} XPOSes.\n")
 
 # This will get iteration function and execute it
 stream = getattr(trainer, argv.get("--entry"))()
@@ -111,7 +115,7 @@ stream = getattr(trainer, argv.get("--entry"))()
 try:
     while True:
         msg = next(stream)
-        print(msg)
+        logger.output(msg)
 except (StopIteration, KeyboardInterrupt):
     trainer.db.drop(trainer.tempcoll.name)
-    print("End of the training.")
+    logger.output("End of the training.")

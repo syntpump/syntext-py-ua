@@ -55,14 +55,14 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
             if "minrule" in self.settings else 2
         )
 
-        print(f"Now {len(self.poses)} POSes will be processed.")
+        self.logger.output(f"Now {len(self.poses)} POSes will be processed.")
 
         for upos, xpos in self.poses:
 
-            self.log(f"Analyzing {upos}: {xpos}...\n")
+            self.loger.write(f"Analyzing {upos}: {xpos}...")
 
             if upos in self.ignoreposes:
-                self.log("Skip IGNOREPOS.\n")
+                self.logger.write("Skip IGNOREPOS.")
                 yield f"{upos} is in ingorepos, so skip it"
                 continue
 
@@ -76,8 +76,8 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
                     "form"
                 )
             )
-            self.log(f"Found {len(tokens)} for that:\n")
-            self.logjson(tokens)
+            self.logger.write(f"Found {len(tokens)} for that:")
+            self.logger.logjson(tokens)
 
             if upos in self.staticposes:
                 if not self.testenabled:
@@ -87,12 +87,12 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
                         "type": "static",
                         "data": tokens
                     })
-                self.log("STATICPOS; Added as exception.\n")
+                self.logger.write("STATICPOS; Added as exception.")
                 yield f"{len(tokens)} tokens of {xpos} was added as static"
                 continue
 
             if len(tokens) < 2:
-                self.log("Not enough data to train.\n")
+                self.logger.write("Not enough data to train.")
                 yield (
                     f"There's only {len(tokens)} of {xpos} "
                     "tokens to train. Skip."
@@ -177,10 +177,10 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
                     f"Exception for {len(exceptions)} of {xpos} contains "
                     f"{len(exceptions)} records"
                 )
-                self.log(f"Added {len(exceptions)} exceptions:\n")
-                self.logjson(exceptions)
+                self.logger.write(f"Added {len(exceptions)} exceptions:")
+                self.logger.logjson(exceptions)
             else:
-                self.log("No exceptions was noticed.\n")
+                self.logger.write("No exceptions was noticed.")
 
             if len(rules) != 0:
                 if not self.testenabled:
@@ -190,16 +190,16 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
                         "type": "rules",
                         "data": list(rules)
                     })
-                self.log(f"Added {len(rules)} rules:\n")
-                self.logjson(list(rules))
+                self.logger.write(f"Added {len(rules)} rules:")
+                self.logger.logjson(list(rules))
                 yield (
                     f"Rule for {len(tokens)} of {xpos} contains "
                     f"{len(rules)} commons "
                 )
             else:
-                self.log("No rules was made.\n")
+                self.logger.write("No rules was made.")
 
-            self.log("\n\n")
+            self.logger.write("\n\n")
 
     def lookForIntersections(self, tokens, maxCommon, minCommon):
         """ Intersect all the tokens in list and return its common part. Look

@@ -1,4 +1,5 @@
-"""Library for making pretty file logs in Markdown format.
+"""Library for making pretty file logs in Markdown format and printing data
+into streams.
 """
 
 
@@ -7,37 +8,52 @@ import json
 
 
 class Logger:
-    """This class contains methods for making logs into files.
+    """This class contains methods for making logs into files and print them
+    to console (or any other stream).
+
+    Properties:
+        stream: A stream to print short messages in.
+        fp (file): A file to write big logs in.
+        enabled (bool): Set this to False in order to disable any logs.
+
     """
 
-    def __init__(self, filepath):
-        """Opens a file in appending mode and type a datetime at the beginning.
+    def __init__(self, enabled=True, stream=None, fp=None):
+        """Initialize class, write datetime info into file if specified.
+        You can use `stream` for warnings, short messages and progress info and
+        `fp` to print big data in Markdown.
 
         Args:
-            filepath (str): A path to file to open.
-
-        Raises:
-            FileNotFoundError: The file is not exists.
-            PermissionError: You're not allowed to access to this file. This
-                error also can occur when the path you specified is directory,
-                not a file.
+            stream: A stream to print messages in.
+            fp (file): A file to write big logs in.
+            enabled (bool): If False, then no logs will be printed. You can set
+                initial state here.
 
         """
 
-        self.file = open(filepath, mode="a+", encoding="utf-8")
-        self.file.write(
-            time.strftime(
-                "# Started at %I:%M%p %d %h, %a '%y\n"
+        self.enabled = enabled
+
+        self.stream = stream
+        self.fp = fp
+
+        if fp:
+            print(
+                time.strftime(
+                    "# Started at %I:%M%p %d %h, %a '%y"
+                ),
+                file=fp
             )
-        )
 
     def logjson(self, data):
-        """Put a formatted json-line into file.
+        """Put a formatted json-line into self.fp.
 
         Args:
             data (list, dict): Data to print.
 
         """
+
+        if not self.enabled:
+            return
 
         dumps = json.dumps(
             data,
@@ -45,14 +61,31 @@ class Logger:
             default=lambda obj: str(type(obj)),
             ensure_ascii=False
         )
-        self.file.write(f"```json\n{dumps}\n```\n")
+        print(f"```json\n{dumps}\n```", file=self.fp)
 
     def write(self, string):
-        """Put the data into file.
+        """Put the data into self.fp.
 
         Args:
             string (str): Data to print.
 
         """
 
-        self.file.write(string)
+        if not self.enabled:
+            return
+
+        print(string, end="", file=self.fp)
+
+    def output(self, string, rewritable=False):
+        """Print a message into self.stream.
+
+        Args:
+            string (str): Data to print.
+            rewritable (bool): Set to True to print \r after message.
+
+        """
+
+        if not self.enabled:
+            return
+
+        print(string, end=("\r" if rewritable else "\n"), file=self.stream)
