@@ -54,6 +54,10 @@ class ContextualProcessor:
         self.applier = applier
         self.priority = priority
         self.ctx19 = Contextual19Parser()
+
+        if not rulescoll:
+            return
+
         self.rulescoll = rulescoll
 
         # Upload all the rules to Ctx19 parser

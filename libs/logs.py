@@ -12,7 +12,7 @@ class Logger:
     to console (or any other stream).
 
     Properties:
-        stream: A stream to print short messages in.
+        stream (_io.TextIOWrapper, *): A stream to print short messages in.
         fp (file): A file to write big logs in.
         enabled (bool): Set this to False in order to disable any logs.
 
@@ -89,3 +89,15 @@ class Logger:
             return
 
         print(string, end=("\r" if rewritable else "\n"), file=self.stream)
+
+    def __del__(self):
+        """Prints message about exit.
+        """
+
+        if self.fp:
+            print(
+                time.strftime(
+                    "\nEnd at %I:%M%p %d %h, %a '%y\n" + ("-" * 79) + "\n\n"
+                ),
+                file=self.fp
+            )
