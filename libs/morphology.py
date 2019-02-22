@@ -2,7 +2,7 @@
 appropriate rule in DB and returns you the result.
 """
 
-from .arrproc import containesSupsetDict
+from .arrproc import isSupsetTo
 import libs.strproc as strproc
 
 
@@ -125,14 +125,19 @@ class MorphologyRecognizer:
 
         priorityList example:
             Suppose, we have this data:
-            priorityList = {
-                "Q": {
-                    xpos: "Css",
-                    upos: "CCONJ",
-                    ...additional parameters
+            priorityList = [
+                {
+                    __what: {
+                        xpos: "Q"
+                    }
+                    __replace: {
+                        xpos: "Css",
+                        upos: "CCONJ",
+                        ...additional parameters
+                    }
                 },
                 ...
-            }
+            ]
             That means the every occuring of "Q" XPOS will be replaced with
             "CCONJ Css" pos, but only when both of them are presented in DB
             response. Any other parameters ("additional parameters") will be
@@ -174,6 +179,8 @@ class MorphologyRecognizer:
 
         if not result:
             return None
+
+        # TODO: replace
 
         if priorityList:
 
@@ -310,3 +317,81 @@ class MorphologyRecognizer:
         )
 
         return bundle[0] if bundle else None
+
+
+class Prioritizer:
+    """This class provides interface to apply priority lists to morphology
+    recognizing. For description see MorphologyRecognizer.recognize method.
+    """
+
+    def __init__(self, li=None):
+        """Init the class and remember the list.
+
+        Args:
+            li (list): Priority list in the following format:
+                [
+                    {
+                        "__what": {  # Here listed properties to replace.
+                            "upos": "...",
+                            ...
+                        }
+                        "__replace": {  # New properties which will be applied.
+                            "upos": "...",
+                            ...
+                        }
+                    },
+                    ...
+                ]
+
+        """
+
+        self.li = li
+
+    def apply(self, token, response):
+        """Apply the rules to the token.
+
+        Args:
+            token (dict): Dictionary of the token.
+            response (list): Rules returned from DB.
+
+        Return :
+            dict: Resulting token.
+
+        """
+
+        if not self.li:
+            return token
+
+        # Unpack each {__what: .., __replace: ..} in self.li as (what, replace)
+        for what, replace in [
+            (rule["__what"], rule["__replace"]) for rule in self.li
+        ]:
+
+            if not isSupsetTo(token, what):
+                continue
+
+            if self.responseContains(replace, response):
+                token.update(replace)
+                # Do only first replacement
+                break
+
+        return token
+
+    def responseContains(self, what, response):
+        """Returns True if response contains rule with the properties defined
+        in `what`.
+
+        Args:
+            what (dict): Dictionary to search.
+            response (list): Response of DB.
+
+        Returns:
+            bool: True if found, False otherwise.
+
+        """
+
+        for item in response:
+            if isSupsetTo(item, what):
+                return True
+
+        return False

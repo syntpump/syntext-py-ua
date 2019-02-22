@@ -62,41 +62,20 @@ def reorder(li: list, a: int, b: int):
     return li
 
 
-def containesSupsetDict(li: list, search: dict):
-    """Check whether list contains dict that is superset for specified dict.
+def isSupsetTo(d: dict, what: dict):
+    """Check whether one `d` dict is supset or equal to `what` dict. This means
+    that all the items from `what` is equal to `d`.
 
     Args:
-        li (list): List to search in.
-        search (dict): Dictionary to compare.
+        d, what (dict): Dicts to compare.
 
     Returns:
-        True: If one was found.
-        False: Otherwise.
-
-    Example:
-        Suppose:
-        search = {
-            a: 0,
-            b: 1,
-            c: 2
-        }
-        True will be returned if `li` contains this dictionary:
-        {
-            a: 0,
-            b: 1,
-            c: 2,
-            d: 3
-        }
-        or this:
-        {
-            a: 0,
-            b: 1
-        }
+        bool: True if d > what, False otherwise.
 
     """
 
-    for item in li:
-        if search.items() <= item.items():
-            return True
+    for key, value in what.items():
+        if d[key] != value:
+            return False
 
-    return False
+    return True
