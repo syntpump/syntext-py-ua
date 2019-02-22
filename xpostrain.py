@@ -9,7 +9,7 @@ argv = Params()
 if argv.has("?"):
     print(
 """
-Use this script to train xpos recognition. This will create a new temporary
+Use this script to train POS recognition. This will create a new temporary
 collection in database with training data you'll be able to merge with the main
 collection later.
 

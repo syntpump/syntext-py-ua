@@ -44,7 +44,6 @@ class ContextualProcessorTrainer:
         self.logger = logger
         self.reader = reader,
         self.collection = db.createCollection(db.EMENDPOS)
-        print(rulescoll)
         self.ctxprocc = ContextualProcessor(
             collection=rulescoll, applier=applier, priority=priority,
             tagparser=tagparser

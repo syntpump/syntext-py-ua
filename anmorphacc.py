@@ -27,7 +27,7 @@ Name             Default     Description
                              Example:
                              conllu.ConlluReader
                              All before last dot must be a path to module.
--unstrict ...   False       Do not check GC format strictly.
+-unstrict ...    False       Do not check GC format strictly.
 --applier ...    -->         Path to applier function for MorphologyRecognizer.
                              Example:
                              path.module.class.function
@@ -44,7 +44,9 @@ Name             Default     Description
     raise SystemExit
 
 logger = Logger(
-    fp=open(argv.get("--logfile", default="amalog.md"), mode="a+", encoding="utf-8"),
+    fp=open(
+        argv.get("--logfile", default="amalog.md"), mode="a+", encoding="utf-8"
+    ),
     stream=sys.stdout
 )
 
@@ -59,7 +61,10 @@ for require in requiered:
     if not argv.has("--" + require):
         argv.request(require, text=f"Provide a {require} name")
 
-applierAddr = argv.get("--applier").split(".")
+applierAddr = argv.get(
+    "--applier",
+    default="libs.morphology.MorphologyRecognizer.selectFirst"
+).split(".")
 # First part of address is a module
 applier = import_module(
     applierAddr.pop(0)
