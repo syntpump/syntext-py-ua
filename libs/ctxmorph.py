@@ -48,11 +48,10 @@ class ContextualProcessor:
 
         self.collection = collection
         self.recognizer = MorphologyRecognizer(
-            collection, tagparser=tagparser
+            collection, tagparser=tagparser, priorityList=priority
         )
         self.tagparser = tagparser
         self.applier = applier
-        self.priority = priority
         self.ctx19 = Contextual19Parser()
 
         if not rulescoll:
@@ -90,8 +89,7 @@ class ContextualProcessor:
         for token in tokens:
             recognized = self.recognizer.recognize(
                 token=token,
-                applierFunc=self.applier,
-                priorityList=self.priority
+                applierFunc=self.applier
             )
             # Return empty dict if token was not recognized
             if not recognized:

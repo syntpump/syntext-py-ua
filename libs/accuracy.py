@@ -55,7 +55,6 @@ class XPOSRecognitionAnalyzer:
         self.offset = offset if offset else 0
         self.recognizer = recognizer
         self.applier = applierFunction
-        self.priorityList = priorityList
 
     def init(self):
         """Init a generator function next() does the next check and returns
@@ -100,7 +99,7 @@ class XPOSRecognitionAnalyzer:
 
                 result = self.recognizer.recognize(token)
                 applierResult = self.recognizer.recognize(
-                    token, self.applier, self.priorityList
+                    token, self.applier
                 )
 
                 self.CHECKED += 1

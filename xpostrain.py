@@ -92,7 +92,7 @@ try:
         # This will import class with specified name from gc module and init it
         # with given parameters.
         gcreader=getattr(import_module("libs.ud." + reader[0]), reader[1])(
-            fp=open(argv.get("--path")),
+            fp=open(argv.get("--path"), encoding="utf-8"),
             ignoreComments=True,
             strict=False if argv.has("-unstrict") else True
         ),
@@ -106,7 +106,7 @@ except (StopIteration, EOFError):
     pass
 finally:
     length = len(trainer.poses)
-    trainer.log(f"Collected {length} XPOSes.\n")
+    logger.write(f"Collected {length} XPOSes.\n")
     logger.output(f"\nCollected {length} XPOSes.\n")
 
 # This will get iteration function and execute it
