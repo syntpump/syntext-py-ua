@@ -10,7 +10,7 @@ class MorphologyRecognizer:
     """This class contains methods for morphology processing.
     """
 
-    def __init__(self, collection, tagparser=None):
+    def __init__(self, collection, tagparser=None, priorityList=None):
         """Init the recognizer with specified db connection.
 
         Args:
@@ -18,9 +18,34 @@ class MorphologyRecognizer:
                 used for rules searching.
             tagparser (Class): Class with "parse" method which can parse XPOS
                 of the token.
+            priorityList (list): Specify dominating of one type over another.
+                (See the example below).
+
+        priorityList example:
+            Suppose, we have this data:
+            priorityList = [
+                {
+                    __what: {
+                        xpos: "Q"
+                    }
+                    __replace: {
+                        xpos: "Css",
+                        upos: "CCONJ",
+                        ...additional parameters
+                    }
+                },
+                ...
+            ]
+            That means the every occuring of "Q" XPOS will be replaced with
+            "CCONJ Css" pos, but only when both of them are presented in DB
+            response. Any other parameters ("additional parameters") will be
+            added to the token's rule too.
+            This may be useful when two equal words appears to be different
+            POS, but one of them more frequent.
 
         """
 
+        self.prioritizer = Prioritizer(priorityList)
         self.collection = collection
         self.tagparser = tagparser
 
@@ -109,7 +134,7 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token, applierFunc=None, priorityList=None):
+    def recognize(self, token, applierFunc=None):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
@@ -120,30 +145,6 @@ class MorphologyRecognizer:
                 extract element you're really need. You can also use a static
                 method selectFirst() from this class to select the first
                 rule from the list.
-            priorityList (list): Specify dominating of one type over another.
-                (See the example below).
-
-        priorityList example:
-            Suppose, we have this data:
-            priorityList = [
-                {
-                    __what: {
-                        xpos: "Q"
-                    }
-                    __replace: {
-                        xpos: "Css",
-                        upos: "CCONJ",
-                        ...additional parameters
-                    }
-                },
-                ...
-            ]
-            That means the every occuring of "Q" XPOS will be replaced with
-            "CCONJ Css" pos, but only when both of them are presented in DB
-            response. Any other parameters ("additional parameters") will be
-            added to the token's rule too.
-            This may be useful when two equal words appears to be different
-            POS, but one of them more frequent.
 
         applierFunc Args:
             list: List of rules from DB.
@@ -180,25 +181,12 @@ class MorphologyRecognizer:
         if not result:
             return None
 
-        # TODO: replace
-
-        if priorityList:
-
-            # Delete "data" parameter in list of rules from DB in order to make
-            # it comparable with `result` since their "data" can be different.
-            for rule in query:
-                del rule["data"]
-
-            # Iterate over XPOSes to replace.
-            for xpos in priorityList:
-                if (
-                    result["xpos"] == xpos and
-                    containesSupsetDict(query, priorityList[xpos])
-                ):
-                    result.update(priorityList[xpos])
+        # Prioritizer won't process a list of tokens, just one
+        if applierFunc:
+            self.prioritizer.apply(result, query)
 
         # This will delete all the keys except upos and xpos and parse the XPOS
-        if self.tagparser:
+        if self.tagparser and applierFunc:
             result = self.unwrapXPOS({
                 "upos": result["upos"],
                 "xpos": result["xpos"]
