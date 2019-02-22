@@ -1,2 +1,2 @@
 pymongo
-ctx19
+ctx19>=1.3

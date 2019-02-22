@@ -52,33 +52,7 @@ class ContextualProcessorTrainer:
         self.cmpkeys = cmpkeys
         self.tagparser = tagparser
 
-    def log(self, msg):
-        """Call self.logger.write if self.logger is defined.
-
-        Args:
-            msg(str, int): Message to print.
-
-        Return:
-            ?: Result of Logger executing.
-
-        """
-
-        if self.logger:
-            return self.logger.write(msg)
-
-    def logjson(self, obj):
-        """Call self.logger.logjson if self.logger is defined.
-
-        Args:
-            obj(*): Any JSON-serializable object.
-
-        Return:
-            ?: Result of Logger executing.
-
-        """
-
-        if self.logger:
-            return self.logger.logjson(obj)
+        logger.write(f"Created collection: {self.collection.name}\n")
 
     def common(self, t1, t2):
         """Generator function, yields bundle of properties that are equal
@@ -308,6 +282,15 @@ class ContextualProcessorTrainer:
             limit = float("inf")
 
         counter = 0
+        tokenCounter = 0
+        rulesCounter = 0
+
+        self.logger.output(
+            "Here you see progress at generating rules in the following "
+            "format:\n"
+            "{number of tokens of sentences}/{number of rules} {relation}%\n"
+            "\"relation\" is the number of rules divided by number of tokens."
+        )
 
         # All errors in sentence processing will be swallowed (except for
         # EOFError and BreakException)
@@ -317,6 +300,7 @@ class ContextualProcessorTrainer:
 
                 sen = self.reader.nextSentence()
 
+                tokenCounter += len(sen["sentence"])
                 counter += 1
 
                 # Continue and break operators is not working in try...except
@@ -328,11 +312,23 @@ class ContextualProcessorTrainer:
                     raise StopIteration
 
                 # processSentence returns list of rules for some sentence
+                self.logger.write(
+                    f"Process sentence #{counter}. Here is it:\n"
+                )
+                self.logger.logjson(sen)
                 for rule in self.processSentence(
                     sentence=sen["sentence"],
                     text=self.reader.getAttr(sen, "text"),
                     r=r, parseTags=parsetags
                 ):
+                    self.logger.write("Generated rule:\n")
+                    self.logger.logjson(rule)
+                    rulesCounter += 1
+                    self.logger.output(
+                        f"{tokenCounter}/{rulesCounter}\t"
+                        f"{rulesCounter/tokenCounter}%",
+                        rewritable=True
+                    )
                     yield rule
 
             except (EOFError):
@@ -391,15 +387,21 @@ class ContextualProcessorTrainer:
                 if assign1 != assign2:
                     continue
 
+                self.logger.write("Merging this rule assignments:\n")
                 merged = self.merge(cond1, cond2, save)
+                self.logger.logjson([cond1, cond2])
 
                 # If rules cannot be merged with the given save coefficient,
                 # skip it.
                 if not merged:
+                    self.logger.write("Can't merge them.\n")
                     continue
 
                 # Change rule
                 rules[i] = (list(merged), assign1)
+
+                self.logger.write("Got this result:\n")
+                self.logger.logjson(rules[i][0])
 
                 # And delete the second rule.
                 del rules[j]
@@ -514,7 +516,7 @@ class ContextualProcessorTrainer:
             # If save==0.5 than this condition will check if less than half of
             # the number of the original conditions was saved.
             len(cond1), len(cond2)
-        ) * 0.5:
+        ) * save:
             return None
 
         return filter(
@@ -560,6 +562,8 @@ class ContextualProcessorTrainer:
                 "if": cond,
                 "then": assign
             })
+
+        self.logger.output(f"\n{len(simplified)} rules after simplifying.")
 
         self.collection.insert(simplified)
 

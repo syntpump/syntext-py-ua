@@ -5,6 +5,7 @@ from importlib import import_module
 from libs.ui import percentage
 from libs.logs import Logger
 import json
+import sys
 
 
 argv = Params()
@@ -26,7 +27,7 @@ Name             Default     Description
                              Example:
                              conllu.ConlluReader
                              All before last dot must be a path to module.
--unstrict ...   False       Do not check GC format strictly.
+-unstrict ...    False       Do not check GC format strictly.
 --applier ...    -->         Path to applier function for MorphologyRecognizer.
                              Example:
                              path.module.class.function
@@ -42,22 +43,28 @@ Name             Default     Description
         )
     raise SystemExit
 
-print("Loading...\r")
+logger = Logger(
+    fp=open(
+        argv.get("--logfile", default="amalog.md"), mode="a+", encoding="utf-8"
+    ),
+    stream=sys.stdout
+)
+
+logger.output("Loading...")
 
 
 from libs.db import DB # noqa E402
 
-
-logger = Logger(
-    filepath=argv.get("--logfile", default="amalog.md")
-)
 
 requiered = ["path", "reader", "collection"]
 for require in requiered:
     if not argv.has("--" + require):
         argv.request(require, text=f"Provide a {require} name")
 
-applierAddr = argv.get("--applier").split(".")
+applierAddr = argv.get(
+    "--applier",
+    default="libs.morphology.MorphologyRecognizer.selectFirst"
+).split(".")
 # First part of address is a module
 applier = import_module(
     applierAddr.pop(0)
@@ -70,7 +77,7 @@ while len(applierAddr) > 0:
 
 reader = argv.get("--reader").split(".")
 reader = getattr(import_module("libs.ud." + reader[0]), reader[1])(
-    fp=open(argv.get("--path")),
+    fp=open(argv.get("--path"), encoding="utf-8"),
     ignoreComments=True,
     strict=False if argv.has("-unstrict") else True
 )
@@ -103,7 +110,7 @@ logger.write(f"Connected to {analyzer.recognizer.collection.name}\n")
 
 generator = analyzer.init()
 
-print(
+logger.output(
     "Loaded succesfully.\n"
     "Here you'll see the analyzing progress. Numbers in the brackets counts "
     "cases where applier function were unable to apply correct rule, even "
@@ -116,13 +123,15 @@ try:
         logger.logjson(
             next(generator)
         )
-        print(
-            f"{analyzer.CHECKED}\t"
-            f"{percentage(analyzer.CORRECT_XPOS, analyzer.CHECKED)}% "
-            f"({percentage(analyzer.IMPROVE_XPOS, analyzer.CHECKED)}%)\t"
-            f"{percentage(analyzer.CORRECT_UPOS, analyzer.CHECKED)}% "
-            f"({percentage(analyzer.IMPROVE_UPOS, analyzer.CHECKED)}%)",
-            end="\r"
+        logger.output(
+            (
+                f"{analyzer.CHECKED}\t"
+                f"{percentage(analyzer.CORRECT_XPOS, analyzer.CHECKED)}% "
+                f"({percentage(analyzer.IMPROVE_XPOS, analyzer.CHECKED)}%)\t"
+                f"{percentage(analyzer.CORRECT_UPOS, analyzer.CHECKED)}% "
+                f"({percentage(analyzer.IMPROVE_UPOS, analyzer.CHECKED)}%)"
+            ),
+            rewritable=True
         )
 except StopIteration:
     pass
@@ -131,4 +140,4 @@ except KeyboardInterrupt:
 finally:
     logger.write("\n")
 
-print("\nDone.")
+logger.output("\nDone.")

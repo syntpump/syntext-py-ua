@@ -22,7 +22,7 @@ class MorphologyRecognizer:
         """
 
         self.collection = collection
-        self.tagparser = tagparser if tagparser else None
+        self.tagparser = tagparser
 
     def getRulesFor(self, token):
         """Guess all the rules that can be applied to this token.
@@ -191,10 +191,11 @@ class MorphologyRecognizer:
                     result.update(priorityList[xpos])
 
         # This will delete all the keys except upos and xpos and parse the XPOS
-        result = self.unwrapXPOS({
-            "upos": result["upos"],
-            "xpos": result["xpos"]
-        })
+        if self.tagparser:
+            result = self.unwrapXPOS({
+                "upos": result["upos"],
+                "xpos": result["xpos"]
+            })
 
         return result
 

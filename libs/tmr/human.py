@@ -91,15 +91,17 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                         )
                     )
 
-                    print(
+                    self.logger.output(
                         f"Training {upos} {xpos}: {counter}/{len(self.poses)}"
                     )
-                    print("Tokens found: %s.\n" % ', '.join(tokens))
+                    self.logger.output(
+                        "Tokens found: %s.\n" % ', '.join(tokens)
+                    )
 
                     # Iterate each token of this POS
                     for token in tokens:
 
-                            print(f"Current token is: {token}")
+                            self.logger.output(f"Current token is: {token}")
 
                             recogn = recognizer.recognize(
                                 token, applier
@@ -111,7 +113,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                             )
 
                             if appRes:
-                                print(
+                                self.logger.output(
                                     f"Recognized as {appRes['upos']} "
                                     f"{appRes['xpos']} "
                                     f"(correct is {xpos} {upos})."
@@ -122,7 +124,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                                         recogn['type']
                                         if recogn['type'] else "<unknown>"
                                     )
-                                    print(
+                                    self.logger.output(
                                         "Recognized correctly. "
                                         f"Type of rule: {ruleType}\n"
                                     )
@@ -130,15 +132,17 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                                 else:
                                     mistakeExists = True
                             else:
-                                print("Token was not recognized at all.")
+                                self.logger.output(
+                                    "Token was not recognized at all."
+                                )
 
                             if result and xpos in keyExtract(result, "xpos"):
-                                print(
+                                self.logger.output(
                                     "Recognizing of this token may be "
                                     "improved. Here's the DB output:"
                                 )
                             else:
-                                print(
+                                self.logger.output(
                                     "Recognized incorrectly. Here's the "
                                     "DB output:"
                                 )
@@ -166,7 +170,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                             what=["y", "n"]
                         ) == "y"
                     ):
-                        print("\n\n")
+                        self.logger.output("\n\n")
                         raise RepeatException
                     break
 
@@ -182,8 +186,8 @@ class HumanTrainer(MorphologyRecognizeTrainer):
         """Show UI to create new rule for DB and adds in to DB.
         """
 
-        print("-" * 80)
-        print("Rules manager.")
+        self.logger.output("-" * 80)
+        self.logger.output("Rules manager.")
 
         while True:
 
@@ -204,13 +208,13 @@ class HumanTrainer(MorphologyRecognizeTrainer):
             except ContinueException:
                 break
 
-        print("-" * 80)
+        self.logger.output("-" * 80)
 
     def searchRules(self):
         """Show UI for searching rules.
         """
 
-        print("Type a filter: ", end="")
+        self.logger.output("Type a filter: ", end="")
 
         try:
             cursor = self.rulescollection.find(
@@ -219,30 +223,30 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                 )
             )
         except Exception:
-            print("There's error in your JSON.")
+            self.logger.output("There's error in your JSON.")
             return None
 
-        print("<Start fetching response>")
+        self.logger.output("<Start fetching response>")
 
         for document in cursor:
             pprint(document, indent=4, compact=True)
-            print("---")
+            self.logger.output("---")
 
-        print("<End fetching response>")
+        self.logger.output("<End fetching response>")
 
     def deleteRule(self):
         """Show UI for deleting rules.
         """
 
-        print("Type ID to delete: ", end="")
+        self.logger.output("Type ID to delete: ", end="")
         try:
             self.rulescollection.find_one_and_delete({
                 "_id": ObjectId(str(input()))
             })
         except Exception:
-            print("Exception happened:")
-            print(Exception)
-        print("Done.")
+            self.logger.output("Exception happened:")
+            self.logger.output(Exception)
+        self.logger.output("Done.")
 
     def newRule(self, xpos, upos):
         """Show UI for creating rules.
@@ -263,12 +267,12 @@ class HumanTrainer(MorphologyRecognizeTrainer):
         # Repeat this until user break
         while True:
             try:
-                print(
+                self.logger.output(
                     "Type data for your rule, separating with space: ",
                     end=""
                 )
                 data = str(input()).split(" ")
-                print(
+                self.logger.output(
                     "Your data is: %s" % json.dumps(data, ensure_ascii=False)
                 )
                 if (
@@ -289,7 +293,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
             "data": data
         })
 
-        print("Rule inserted:")
+        self.logger.output("Rule inserted:")
         pprint(inserted, indent=4, compact=True)
 
 

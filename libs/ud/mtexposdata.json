@@ -246,18 +246,23 @@
     	}
     },
     "Q": {
-    	"upos": "Particle"
+    	"upos": "Particle",
+    	"attrs": []
     },
     "I": {
-    	"upos": "Interjection"
+    	"upos": "Interjection",
+    	"attrs": []
     },
     "Y": {
-    	"upos": "Abbreviation"
+    	"upos": "Abbreviation",
+    	"attrs": []
     },
     "X": {
-    	"upos": "Residual"
+    	"upos": "Residual",
+    	"attrs": []
     },
     "U": {
-    	"upos": "Punctuation"
+    	"upos": "Punctuation",
+    	"attrs": []
     }
 }
