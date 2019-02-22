@@ -100,10 +100,10 @@ analyzer = XPOSRecognitionAnalyzer(
             )
         ).cli.get_collection(
             argv.get("--collection")
-        )
+        ),
+        priorityList=priorityList
     ),
-    applierFunction=applier,
-    priorityList=priorityList
+    applierFunction=applier
 )
 
 logger.write(f"Connected to {analyzer.recognizer.collection.name}\n")

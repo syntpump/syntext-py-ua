@@ -2,7 +2,7 @@
 appropriate rule in DB and returns you the result.
 """
 
-from .arrproc import containesSupsetDict
+from .arrproc import isSupsetTo
 import libs.strproc as strproc
 
 
@@ -10,7 +10,7 @@ class MorphologyRecognizer:
     """This class contains methods for morphology processing.
     """
 
-    def __init__(self, collection, tagparser=None):
+    def __init__(self, collection, tagparser=None, priorityList=None):
         """Init the recognizer with specified db connection.
 
         Args:
@@ -18,9 +18,34 @@ class MorphologyRecognizer:
                 used for rules searching.
             tagparser (Class): Class with "parse" method which can parse XPOS
                 of the token.
+            priorityList (list): Specify dominating of one type over another.
+                (See the example below).
+
+        priorityList example:
+            Suppose, we have this data:
+            priorityList = [
+                {
+                    __what: {
+                        xpos: "Q"
+                    }
+                    __replace: {
+                        xpos: "Css",
+                        upos: "CCONJ",
+                        ...additional parameters
+                    }
+                },
+                ...
+            ]
+            That means the every occuring of "Q" XPOS will be replaced with
+            "CCONJ Css" pos, but only when both of them are presented in DB
+            response. Any other parameters ("additional parameters") will be
+            added to the token's rule too.
+            This may be useful when two equal words appears to be different
+            POS, but one of them more frequent.
 
         """
 
+        self.prioritizer = Prioritizer(priorityList)
         self.collection = collection
         self.tagparser = tagparser
 
@@ -109,7 +134,7 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token, applierFunc=None, priorityList=None):
+    def recognize(self, token, applierFunc=None):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
@@ -120,25 +145,6 @@ class MorphologyRecognizer:
                 extract element you're really need. You can also use a static
                 method selectFirst() from this class to select the first
                 rule from the list.
-            priorityList (list): Specify dominating of one type over another.
-                (See the example below).
-
-        priorityList example:
-            Suppose, we have this data:
-            priorityList = {
-                "Q": {
-                    xpos: "Css",
-                    upos: "CCONJ",
-                    ...additional parameters
-                },
-                ...
-            }
-            That means the every occuring of "Q" XPOS will be replaced with
-            "CCONJ Css" pos, but only when both of them are presented in DB
-            response. Any other parameters ("additional parameters") will be
-            added to the token's rule too.
-            This may be useful when two equal words appears to be different
-            POS, but one of them more frequent.
 
         applierFunc Args:
             list: List of rules from DB.
@@ -175,23 +181,12 @@ class MorphologyRecognizer:
         if not result:
             return None
 
-        if priorityList:
-
-            # Delete "data" parameter in list of rules from DB in order to make
-            # it comparable with `result` since their "data" can be different.
-            for rule in query:
-                del rule["data"]
-
-            # Iterate over XPOSes to replace.
-            for xpos in priorityList:
-                if (
-                    result["xpos"] == xpos and
-                    containesSupsetDict(query, priorityList[xpos])
-                ):
-                    result.update(priorityList[xpos])
+        # Prioritizer won't process a list of tokens, just one
+        if applierFunc:
+            self.prioritizer.apply(result, query)
 
         # This will delete all the keys except upos and xpos and parse the XPOS
-        if self.tagparser:
+        if self.tagparser and applierFunc:
             result = self.unwrapXPOS({
                 "upos": result["upos"],
                 "xpos": result["xpos"]
@@ -310,3 +305,81 @@ class MorphologyRecognizer:
         )
 
         return bundle[0] if bundle else None
+
+
+class Prioritizer:
+    """This class provides interface to apply priority lists to morphology
+    recognizing. For description see MorphologyRecognizer.recognize method.
+    """
+
+    def __init__(self, li=None):
+        """Init the class and remember the list.
+
+        Args:
+            li (list): Priority list in the following format:
+                [
+                    {
+                        "__what": {  # Here listed properties to replace.
+                            "upos": "...",
+                            ...
+                        }
+                        "__replace": {  # New properties which will be applied.
+                            "upos": "...",
+                            ...
+                        }
+                    },
+                    ...
+                ]
+
+        """
+
+        self.li = li
+
+    def apply(self, token, response):
+        """Apply the rules to the token.
+
+        Args:
+            token (dict): Dictionary of the token.
+            response (list): Rules returned from DB.
+
+        Return :
+            dict: Resulting token.
+
+        """
+
+        if not self.li:
+            return token
+
+        # Unpack each {__what: .., __replace: ..} in self.li as (what, replace)
+        for what, replace in [
+            (rule["__what"], rule["__replace"]) for rule in self.li
+        ]:
+
+            if not isSupsetTo(token, what):
+                continue
+
+            if self.responseContains(replace, response):
+                token.update(replace)
+                # Do only first replacement
+                break
+
+        return token
+
+    def responseContains(self, what, response):
+        """Returns True if response contains rule with the properties defined
+        in `what`.
+
+        Args:
+            what (dict): Dictionary to search.
+            response (list): Response of DB.
+
+        Returns:
+            bool: True if found, False otherwise.
+
+        """
+
+        for item in response:
+            if isSupsetTo(item, what):
+                return True
+
+        return False

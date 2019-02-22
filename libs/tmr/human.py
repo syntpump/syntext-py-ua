@@ -56,12 +56,13 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                 applier, applierAddr.pop(0)
             )
 
-        recognizer = MorphologyRecognizer(
-            collection=self.rulescollection
-        )
-
         priorityList = json.load(
             open(self.settings["priorityList"])
+        )
+
+        recognizer = MorphologyRecognizer(
+            collection=self.rulescollection,
+            priorityList=priorityList
         )
 
         counter = 0
@@ -103,13 +104,9 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
                             self.logger.output(f"Current token is: {token}")
 
-                            recogn = recognizer.recognize(
-                                token, applier
-                            )
-
                             result = recognizer.recognize(token)
                             appRes = recognizer.recognize(
-                                token, applier, priorityList
+                                token, applier
                             )
 
                             if appRes:
@@ -121,8 +118,8 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
                                 if xpos == appRes["xpos"]:
                                     ruleType = (
-                                        recogn['type']
-                                        if recogn['type'] else "<unknown>"
+                                        appRes['type']
+                                        if appRes['type'] else "<unknown>"
                                     )
                                     self.logger.output(
                                         "Recognized correctly. "
