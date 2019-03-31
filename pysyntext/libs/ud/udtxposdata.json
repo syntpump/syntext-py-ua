@@ -1,0 +1,328 @@
+{
+	"properties": {
+		"Abbr": {
+			"name": "ab"
+		},
+		"AbsErgDatNumber": {
+			"name": "an",
+			"props": {
+				"Sing": "sin",
+				"Plur": "plu"
+			}
+		},
+		"AbsErgDatPerson": {
+			"name": "ar",
+			"props": {
+				"1": "1pr",
+				"2": "2pr",
+				"3": "3pr"
+			}
+		},
+		"AbsErgDatPolite": {
+			"name": "al"
+		},
+		"AdpType": {
+			"name": "ap",
+			"props": {
+				"Prep": "pre",
+				"Post": "pst",
+				"Circ": "cor"
+			}
+		},
+		"AdvType": {
+			"name": "av",
+			"props": {
+				"Ex": "exs",
+				"Adadj": "add"
+			}
+		},
+		"Animacy": {
+			"name": "am",
+			"props": {
+				"Anim": "ani",
+				"Inan": "ina",
+				"Hum": "hum",
+				"Nhum": "nhu"
+			}
+		},
+		"Aspect": {
+			"name": "as",
+			"props": {
+				"Perf": "pr",
+				"Prosp": "pr",
+				"Prog": "pg",
+				"Iter": "it"
+			}
+		},
+		"Case": {
+			"name": "cs"
+		},
+		"Clusivity": {
+			"name": "cl",
+			"props": {
+				"In": "inc",
+				"Ex": "exc"
+			}
+		},
+		"ConjType": {
+			"name": "cj",
+			"props": {
+				"Comp": "cmp",
+				"Oper": "mth"
+			}
+		},
+		"Definite": {
+			"name": "df",
+			"props": {
+				"Cons": "cns",
+				"Spec": "spc"
+			}
+		},
+		"Degree": {
+			"name": "dg"
+		},
+		"Echo": {
+			"name": "ec"
+		},
+		"ErgDatGender": {
+			"name": "eg",
+			"props": {
+				"Masc": "msc"
+			}
+		},
+		"Evident": {
+			"name": "ev",
+			"props": {
+				"Fh": "frh"
+			}
+		},
+		"Foreign": {
+			"name": "fr"
+		},
+		"Gender": {
+			"name": "gn",
+			"props": {
+				"Masc": "msc",
+				"Neut": "neu"
+			}
+		},
+		"Hyph": {
+			"name": "hp"
+		},
+		"Mood": {
+			"name": "mo"
+		},
+		"NameType": {
+			"name": "nn"
+		},
+		"NounClass": {
+			"name": "nc"
+		},
+		"NounType": {
+			"name": "nt",
+			"props": {
+				"Class": "cls"
+			}
+		},
+		"NumForm": {
+			"name": "nf",
+			"props": {
+				"Word": "wrd",
+				"Digit": "dgt",
+				"Roman": "rmn"
+			}
+		},
+		"NumType": {
+			"name": "ny",
+			"props": {
+				"Card": "crd",
+				"Dist": "dst",
+				"Frac": "frc",
+				"Mult": "mlt",
+				"Range": "rng",
+				"Sets": "set"
+			}
+		},
+		"NumValue": {
+			"name": "nv",
+			"props": {
+				"1": "001",
+				"2": "002",
+				"3": "003"
+			}
+		},
+		"Number": {
+			"name": "nm",
+			"props": {
+				"Coll": "cll",
+				"Count": "cnt",
+				"Dual": "dua",
+				"Grpa": "gra",
+				"Grpl": "grl",
+				"Pauc": "pau",
+				"Plur": "plu",
+				"Ptan": "ptn",
+				"Sing": "sin"
+			}
+		},
+		"PartType": {
+			"name": "pt"
+		},
+		"Person": {
+			"name": "pr",
+			"props": {
+				"0": "000",
+				"1": "001",
+				"2": "002",
+				"3": "003",
+				"4": "004"
+			}
+		},
+		"Polarity": {
+			"name": "po"
+		},
+		"Polite": {
+			"name": "pl",
+			"props": {
+				"Elev": "elv",
+				"Form": "frm",
+				"Humb": "hmb",
+				"Infm": "ifr"
+			}
+		},
+		"Poss": {
+			"name": "ps"
+		},
+		"PossGender": {
+			"name": "pg",
+			"props": {
+				"Masc": "msc"
+			}
+		},
+		"PossNumber": {
+			"name": "pn",
+			"props": {
+				"Sing": "sng",
+				"Plur": "plu"
+			}
+		},
+		"PossPerson": {
+			"name": "pp",
+			"props": {
+				"1": "001",
+				"2": "002",
+				"3": "003"
+			}
+		},
+		"PossedNumber": {
+			"name": "pd",
+			"props": {
+				"Sing": "sng",
+				"Plur": "plu"
+			}
+		},
+		"Prefix": {
+			"name": "px"
+		},
+		"PrepCase": {
+			"name": "pc"
+		},
+		"PronType": {
+			"name": "pe"
+		},
+		"PunctSide": {
+			"name": "pu"
+		},
+		"PunctType": {
+			"name": "py",
+			"props": {
+				"Peri": "per",
+				"Qest": "qst",
+				"Excl": "exc",
+				"Quot": "qut",
+				"Brck": "brc",
+				"Comm": "com",
+				"Colo": "col",
+				"Semi": "sem",
+				"Dash": "das",
+				"Symb": "sym"
+			}
+		},
+		"Reflex": {
+			"name": "rf"
+		},
+		"Style": {
+			"name": "sy",
+			"props": {
+				"Arch": "arc",
+				"Rare": "rar",
+				"Form": "for",
+				"Poet": "pot",
+				"Norm": "nrm",
+				"Coll": "col",
+				"Vrnc": "vrn",
+				"Slng": "slg",
+				"Expr": "exp",
+				"Derg": "drg",
+				"Vulg": "vlg"
+			}
+		},
+		"Subcat": {
+			"name": "sc",
+			"props": {
+				"Intr": "int",
+				"Tran": "trn"
+			}
+		},
+		"Tense": {
+			"name": "tn",
+			"props": {
+				"Past": "pst",
+				"Pres": "pre"
+			}
+		},
+		"Typo": {
+			"name": "ty"
+		},
+		"VerbForm": {
+			"name": "vf",
+			"props": {
+				"Conv": "cnv",
+				"Part": "prt",
+				"Vnoun": "vno"
+			}
+		},
+		"VerbType": {
+			"name": "vt",
+			"props": {
+				"Light": "lgh"
+			}
+		},
+		"Voice": {
+			"name": "vc",
+			"props": {
+				"Antip": "ant",
+				"Pass": "pss"
+			}
+		}
+	},
+	"poses": {
+		"ADJ": "j",
+		"ADP": "p",
+		"ADV": "e",
+		"AUX": "l",
+		"CCONJ": "c",
+		"DET": "d",
+		"INTJ": "t",
+		"NOUN": "n",
+		"NUM": "m",
+		"PART": "a",
+		"PRON": "r",
+		"PROPN": "o",
+		"PUNCT": "p",
+		"SCONJ": "j",
+		"SYM": "s",
+		"VERB": "v",
+		"X": "x"	
+	}
+}
