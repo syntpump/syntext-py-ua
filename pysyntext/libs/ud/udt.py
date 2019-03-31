@@ -119,19 +119,16 @@ class UDTParser:
 
         """
 
-        tag = str()
+        #  First letter of tag is POS name
+        tag = self.data["poses"][props.pop("upos")]
 
         for key, value in props.items():
-            if key == "upos":
-                #  Find first letter for POS
-                tag += self.data["poses"][value]
+            block = self.data["properties"][key]
+            tag += block["name"]
+            if "props" in block:
+                tag += block["props"][value]
             else:
-                block = self.data["properties"][key]
-                tag += block["name"]
-                if "props" in block:
-                    tag += block["props"][value]
-                else:
-                    tag += value.lower()
+                tag += value.lower()
 
         return tag
 
