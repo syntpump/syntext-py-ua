@@ -79,3 +79,32 @@ def isSupsetTo(d: dict, what: dict):
             return False
 
     return True
+
+
+def findIn(d: dict, equal):
+    """Find and return record in dictionary which is associated with `equal`.
+    May be useful for searching unique objects in large amounts of data.
+
+    Args:
+        d (dict): Dictionary where to search in.
+        equal (*): What to look for. If it's a dict, item which is supset for
+            the given will be found.
+
+    Returns:
+        namedtuple: DictItem(key=..., item=...)
+
+    Example:
+        >>> findIn({'a': 0,  'b': 1}, 1)
+        <<< DictItem(key='b', item=1)
+        >>> findIn({'a': {'b': 'c', 'd': 'e'}}, {'d': 'e'})
+        <<< DictItem(key='a', item={'b': 'c', 'd': 'e'})
+
+    """
+
+    for key, item in d.items():
+        if (
+            type(equal) is dict and isSupsetTo(item, equal)
+        ) or item == equal:
+            return {"key": key, "item": item}
+
+    raise KeyError("Value was not found")
