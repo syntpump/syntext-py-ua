@@ -42,7 +42,7 @@ class MTEParser:
             }
 
         Raises:
-            TypeError: Something wrong with your tagM.
+            TypeError: Something wrong with your tag.
 
         """
 
