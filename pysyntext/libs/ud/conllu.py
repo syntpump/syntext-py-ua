@@ -25,13 +25,24 @@ class ConlluReader(GCReader):
     # Redefine constant from GCReader
     TOKENNAME = 'data'
 
-    def __init__(self, fp, ignoreComments=False, strict=True):
+    def __init__(
+        self, fp, ignoreComments=False, strict=True,
+        replaceMTE=False
+    ):
         """Init the reader with arguments defined in base class.
+
+        Args:
+            replaceMTE (bool): If True, then MTE tags will be replaced with
+                UDT ones.
+
         """
 
         super().__init__(fp, ignoreComments, strict)
+
+        if replaceMTE:
+            self.udt = UDTParser()
+
         self.mte = None
-        self.udt = None
 
     def parseFeats(self, line):
         """Convert FEATS line to a dict object. The FEATS field contains a list
@@ -75,10 +86,6 @@ class ConlluReader(GCReader):
 
     def nextLine(self, replaceMTE=False):
         """Parse the next line of the file, return it and increase cursor.
-
-        Args:
-            replaceMTE (bool): If True, then MTE tags will be replaced with
-                UDT-encoded ones.
 
         Raises:
             EOFError: End of the file was reached.
@@ -222,7 +229,7 @@ class ConlluReader(GCReader):
 
             data[field] = value
 
-        if replaceMTE:
+        if self.udt:
             data["xpos"] = self.encodeUDT(data["upos"], data["feats"])
 
         return {
@@ -244,9 +251,6 @@ class ConlluReader(GCReader):
             ...Errors from UDTParser.__init__
 
         """
-
-        if self.udt is None:
-            self.udt = UDTParser()
 
         #  Unite feats and upos into one dict.
         return self.udt.stringify({
