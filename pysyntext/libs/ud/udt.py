@@ -93,9 +93,12 @@ class UDTParser:
                     feats[block["key"]] = value.capitalize()
                     continue
 
-                feats[block["key"]] = findIn(
-                    block["item"]["props"], value
-                )["key"]
+                try:
+                    feats[block["key"]] = findIn(
+                        block["item"]["props"], value
+                    )["key"]
+                except KeyError:
+                    feats[block["key"]] = value.capitalize()
 
         except (KeyError, IndexError):
             raise IncorrectTag(f"Unexisting property in your tag: {tag}")
@@ -125,7 +128,7 @@ class UDTParser:
         for key, value in props.items():
             block = self.data["properties"][key]
             tag += block["name"]
-            if "props" in block:
+            if "props" in block and value in block["props"]:
                 tag += block["props"][value]
             else:
                 tag += value.lower()
