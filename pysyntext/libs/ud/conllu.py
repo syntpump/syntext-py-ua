@@ -7,22 +7,42 @@ be given access to nextLine() and nextSentence() methods.
 
 from ..gc import GCReader
 from .mte import MTEParser
+from .udt import UDTParser
 
 
 class ConlluReader(GCReader):
     """Use this class to read and parse Universal Dependencies data in CoNLL-U
     format.
+
+    Properties:
+        mte (MTEParser): Parser for decoding MTE tags. Initialize at the first
+            encodeXPOS call.
+        udt (UDTParser): Parser for encoding UDT tags. Initialize at the first
+            nextLine call with replaceMTE=True
+
     """
 
     # Redefine constant from GCReader
     TOKENNAME = 'data'
 
-    def __init__(self, fp, ignoreComments=False, strict=True):
+    def __init__(
+        self, fp, ignoreComments=False, strict=True,
+        replaceMTE=False
+    ):
         """Init the reader with arguments defined in base class.
+
+        Args:
+            replaceMTE (bool): If True, then MTE tags will be replaced with
+                UDT ones.
+
         """
 
         super().__init__(fp, ignoreComments, strict)
-        self.mte = MTEParser()
+
+        if replaceMTE:
+            self.udt = UDTParser()
+
+        self.mte = None
 
     def parseFeats(self, line):
         """Convert FEATS line to a dict object. The FEATS field contains a list
@@ -64,7 +84,7 @@ class ConlluReader(GCReader):
 
         return data
 
-    def nextLine(self):
+    def nextLine(self, replaceMTE=False):
         """Parse the next line of the file, return it and increase cursor.
 
         Raises:
@@ -76,6 +96,7 @@ class ConlluReader(GCReader):
             TypeError: Fields 'id', 'upos', 'head', 'deprel' cannot be
                 unspecified.
             ...Errors from self.parseFeats()
+            ...Errors from self.encodeUDT()
 
         Returns:
             dict: A parsed line.
@@ -208,10 +229,34 @@ class ConlluReader(GCReader):
 
             data[field] = value
 
+        if self.udt:
+            data["xpos"] = self.encodeUDT(data["upos"], data["feats"])
+
         return {
             "type": self.DATALINE,
             "data": data
         }
+
+    def encodeUDT(self, upos, feats):
+        """Create UDT tag for the given POS and feats.
+
+        Args:
+            upos (str): POS of the tag.
+            feats (dict): Properties of the tag.
+
+        Returns:
+            str: Encoded tag.
+
+        Raises:
+            ...Errors from UDTParser.__init__
+
+        """
+
+        #  Unite feats and upos into one dict.
+        return self.udt.stringify({
+            **feats,
+            **{"upos": upos}
+        })
 
     @staticmethod
     def extractProperty(line, prop="form"):
@@ -348,6 +393,12 @@ class ConlluReader(GCReader):
                     'Formation': 'simple'
                 }
 
+        Raises:
+            ...Errors from MTEParser.__init__
+
         """
+
+        if self.mte is None:
+            self.mte = MTEParser()
 
         return self.mte.parse(tag)

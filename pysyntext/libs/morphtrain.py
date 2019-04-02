@@ -19,6 +19,7 @@ class MorphologyRecognizeTrainer:
         poses (set, optional): Set of (UPOS, XPOS) tuples of uploaded tokens by
             loadData() method. Is None before first use.
         settings (dict): Dictionary of params that your trainer expect.
+        useUDT (bool): Use UDT tags.
 
     """
 

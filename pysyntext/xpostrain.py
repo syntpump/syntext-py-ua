@@ -37,6 +37,7 @@ Name            Default     Description
 --limit ...     0           Limit of tokens to be processed. Can be used for
                             testing script. Pass '0' to set it to infinite.
 --offset ...    0           Skip first N tokens from GC.
+-useUDT         False       If enabled, UDT tags instead of MTE will be used.
 -test           False       Do not upload any data to dbhost.
 ...Plus additional parameters needed for the trainer you chose.
 """ # noqa E122
@@ -94,7 +95,8 @@ try:
         gcreader=getattr(import_module("libs.ud." + reader[0]), reader[1])(
             fp=open(argv.get("--path"), encoding="utf-8"),
             ignoreComments=True,
-            strict=False if argv.has("-unstrict") else True
+            strict=False if argv.has("-unstrict") else True,
+            replaceMTE=True if argv.has("-useUDT") else False
         ),
         limit=int(argv.get("--limit", default=0)),
         offset=int(argv.get("--offset", default=0))
