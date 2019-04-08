@@ -37,7 +37,7 @@ class Predefinator:
         path = path.split(".")
         obj = import_module(path.pop(0))
 
-        while len(path):
+        while path:
             obj = getattr(obj, path.pop(0))
 
         return obj
