@@ -37,7 +37,7 @@ class Predefinator:
         path = path.split(".")
         obj = import_module(path.pop(0))
 
-        while len(path) > 0:
+        while len(path):
             obj = getattr(obj, path.pop(0))
 
         return obj
@@ -78,7 +78,7 @@ class Predefinator:
             if prop[0] == "$":
                 continue
 
-            if type(value) is not dict:
+            if not isinstance(value, dict):
                 initprops[prop] = value
             else:
                 if value["object"] == "function":
