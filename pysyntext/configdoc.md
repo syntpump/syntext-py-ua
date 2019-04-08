@@ -11,6 +11,8 @@ You can also pass obtained object instead of primitive. To do so, assign the pro
 }
 ```
 
+Every class should have `$location` property which is pointer to package where to load class from. Example: ```"A": {"$location": "B.C"}``` is equivalent to `from B.C import A`.
+
 ## Supporting type of objects
 
 ### `class`
