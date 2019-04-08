@@ -1,0 +1,42 @@
+{
+	"DB": {
+		"$location": "libs.db",
+		"host": "atlas",
+		"dbname": "syntextua"
+	},
+	"MorphologyRecognizer": {
+		"$location": "libs.morphology",
+		"collection": "xposrules",
+		"tagparser": {
+			"object": "class",
+			"name": "MTEParser"
+		},
+		"priorityList": "dominations.json"
+	},
+	"ContextualProcessor": {
+		"$location": "libs.ctxmorph",
+		"collection": "xposrules",
+		"applier": {
+			"object": "function",
+			"name": "libs.morphology.MorphologyRecognizer.selectByEnding"
+		},
+		"priority": "dominations.json",
+		"tagparser": {
+			"object": "class",
+			"name": "MTEParser"
+		},
+		"rulescoll": "ctxrules"
+	},
+	"ConlluReader": {
+		"$location": "libs.ud.conllu",
+		"fp": {
+			"object": "sysvar",
+			"name": "CONLLUPATH"
+		},
+		"ignoreComments": false,
+		"strict": false
+	},
+	"MTEParser": {
+		"$location": "libs.ud.mte"
+	}
+}
