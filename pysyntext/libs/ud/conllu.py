@@ -229,7 +229,7 @@ class ConlluReader(GCReader):
 
             data[field] = value
 
-        if self.udt:
+        if hasattr(self, "udt"):
             data["xpos"] = self.encodeUDT(data["upos"], data["feats"])
 
         return {
