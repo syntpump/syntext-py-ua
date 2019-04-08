@@ -1,18 +1,9 @@
-"""Use this library to get predefined objects of the following classes:
-    - DB
-    - MorphologyRecognizer
-    - ContextualProcessor
-    - ConlluReader
+"""Use this library to initialize any class defined in config.json.
 """
 
 import json
 from importlib import import_module
 import os
-import pymongo
-from libs.db import DB
-from libs.morphology import MorphologyRecognizer
-from libs.ctxmorph import ContextualProcessor
-from libs.ud.conllu import ConlluReader
 
 
 class Predefinator:
@@ -28,11 +19,6 @@ class Predefinator:
 
         with open('config.json') as fp:
             self.config = json.load(fp)
-
-        db_config = config["DB"]
-        mr_config = config["MorphologyRecognizer"]
-        cp_config = config["ContextualProcessor"]
-        cr_config = config["ConlluReader"]
 
     def getByPath(self, path):
         """Returns object by its path.
@@ -88,6 +74,7 @@ class Predefinator:
 
         for prop, value in properties.items():
 
+            # '$'-marked fields are not properties for constructor
             if prop[0] == "$":
                 continue
 
@@ -111,27 +98,3 @@ class Predefinator:
 
         # Unpack dictionary with properties and initialize obj, which is class
         return obj(**initprops)
-
-    def defineDB(self):
-        """Returns predefined DB object
-        """
-
-        return DB(db_config["host"], db_config["dbname"])
-
-    def defineMorphRec(self):
-        """Returns predefined MorphologyRecognizer object
-        """
-
-        return MorphologyRecognizer(mr_config["collection"], mr_config["tagparser"], mr_config["priorityList"])
-
-    def defineConProc(self):
-        """Returns predefined ContextualProcessor object
-        """
-
-        return ContextualProcessor(cp_config["collection"], cp_config["applier"], cp_config["priority"], cp_config["tagparser"], cp_config["rulescoll"])
-
-    def defineCollRead(self):
-        """Returns predefined ConlluReader object
-        """
-
-        return ConlluReader(cr_config["fp"], cr_config["ignoreComments"], cr_config["strict"])
