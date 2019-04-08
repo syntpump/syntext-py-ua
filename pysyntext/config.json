@@ -9,7 +9,7 @@
 		"collection": "xposrules",
 		"tagparser": {
 			"object": "class",
-			"name": "libs.ud.mte.MTEParser"
+			"name": "MTEParser"
 		},
 		"priorityList": "dominations.json"
 	},
@@ -23,7 +23,7 @@
 		"priority": "dominations.json",
 		"tagparser": {
 			"object": "class",
-			"name": "libs.ud.mte.MTEParser"
+			"name": "MTEParser"
 		},
 		"rulescoll": "ctxrules"
 	},
@@ -35,5 +35,8 @@
 		},
 		"ignoreComments": false,
 		"strict": false
+	},
+	"MTEParser": {
+		"$location": "libs.ud.mte"
 	}
 }
