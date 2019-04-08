@@ -6,6 +6,7 @@
 """
 
 import json
+from importlib import import_module
 import pymongo
 from libs.db import DB
 from libs.morphology import MorphologyRecognizer
@@ -14,18 +15,45 @@ from libs.ud.conllu import ConlluReader
 
 
 class Predefinator:
-    """This class contains methods returning predefined objects
+    """This class can initialize classes using configs from config.json in this
+    directory.
+
+    Properties:
+        config (dict): Configurations.
+
     """
 
     def __init__(self):
 
-        with open('config.json') as configuration_file:
-            config = json.load(configuration_file)
+        with open('config.json') as fp:
+            self.config = json.load(fp)
 
         db_config = config["DB"]
         mr_config = config["MorphologyRecognizer"]
         cp_config = config["ContextualProcessor"]
         cr_config = config["ConlluReader"]
+
+    def getClass(self, path):
+        """Return class by its path.
+
+        Properties:
+            path (str): Path to class.
+
+        Returns:
+            uninitialized class
+
+        Throws:
+            AttributeError: Given path does not exist.
+
+        """
+
+        path = path.split(".")
+        obj = import_module(path.pop(0))
+
+        while len(path) > 0:
+            obj = getattr(obj, path.pop(0))
+
+        return obj
 
     def defineDB(self):
         """Returns predefined DB object
