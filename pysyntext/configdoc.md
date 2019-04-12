@@ -49,3 +49,9 @@ File pointer can be passed with the following syntax:
 `{"object": "fp", "address": "address to your file"}`
 
 This will return file opened by `open()` function.
+
+### `jsonfp`
+
+Following syntax will take given file, encode as JSON and pass the result to a class:
+
+`{"object": "fp", "address": "address to your file"}`

@@ -102,6 +102,8 @@ class Predefinator:
                     initprops[prop] = os.getenv(value["name"])
                 elif value["object"] == "fp":
                     initprops[prop] = open(value["address"])
+                elif value["object"] == "jsonfp":
+                    initprops[prop] = json.load(open(value["address"]))
 
         # Unpack dictionary with properties and initialize obj, which is class
         return obj(**initprops)
