@@ -165,8 +165,17 @@
 				"Sing": "sin"
 			}
 		},
+		"Uninflect": {
+			"name": "uf",
+			"props": {
+				"No": "nnn"
+			}
+		},
 		"PartType": {
-			"name": "pt"
+			"name": "pt",
+			"props": {
+				"Conseq": "cq"
+			}
 		},
 		"Person": {
 			"name": "pr",
@@ -245,7 +254,9 @@
 				"Colo": "col",
 				"Semi": "sem",
 				"Dash": "das",
-				"Symb": "sym"
+				"Symb": "sym",
+				"Bull": "bul",
+				"Ndash": "nda"
 			}
 		},
 		"Reflex": {
@@ -304,6 +315,23 @@
 				"Antip": "ant",
 				"Pass": "pss"
 			}
+		},
+		"Variant": {
+			"name": "va",
+			"props": {
+				"Short": "sh",
+				"Uncontr": "un"
+			}
+		},
+		"Animacy[gram]": {
+			"name": "ag",
+			"props": {
+				"Anim": "an",
+				"Inan": "in"
+			}
+		},
+		"Orth": {
+			"name": "oh"
 		}
 	},
 	"poses": {
