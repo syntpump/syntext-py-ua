@@ -198,9 +198,7 @@ class ConlluReader(GCReader):
 
         data = dict()
 
-        for i, value in enumerate(line):
-
-            field = fields[i]
+        for field, value in zip(fields, line):
 
             if self.strict:
 
@@ -223,6 +221,11 @@ class ConlluReader(GCReader):
                         f"unspecified. Error at {self.cursor} line in "
                         f"{self.file.name}."
                     )
+
+            if field == "upos" and value == "_":
+                return {
+                    "type": self.BLANKLINE
+                }
 
             if field == 'feats':
                 value = self.parseFeats(value)
@@ -251,6 +254,10 @@ class ConlluReader(GCReader):
             ...Errors from UDTParser.__init__
 
         """
+
+        # Prevent exception when None `feats` was passed.
+        if not feats:
+            feats = {}
 
         #  Unite feats and upos into one dict.
         return self.udt.stringify({
