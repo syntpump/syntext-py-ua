@@ -59,7 +59,7 @@ class TrainByAffixes(MorphologyRecognizeTrainer):
 
         for upos, xpos in self.poses:
 
-            self.loger.write(f"Analyzing {upos}: {xpos}...")
+            self.logger.write(f"Analyzing {upos}: {xpos}...")
 
             if upos in self.ignoreposes:
                 self.logger.write("Skip IGNOREPOS.")
