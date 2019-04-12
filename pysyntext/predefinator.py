@@ -15,10 +15,15 @@ class Predefinator:
 
     """
 
-    def __init__(self):
+    def __init__(self, fp):
+        """Reads configs from passed fp and remember it.
 
-        with open('config.json') as fp:
-            self.config = json.load(fp)
+        Arguments:
+            fp (file)
+
+        """
+
+        self.config = json.load(fp)
 
     def getByPath(self, path):
         """Returns object by its path.
