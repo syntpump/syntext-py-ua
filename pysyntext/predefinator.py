@@ -95,6 +95,8 @@ class Predefinator:
                         )
                 elif value["object"] == "sysvar":
                     initprops[prop] = os.getenv(value["name"])
+                elif value["object"] == "fp":
+                    initprops[prop] = open(value["address"])
 
         # Unpack dictionary with properties and initialize obj, which is class
         return obj(**initprops)

@@ -41,3 +41,11 @@ Using the following syntax:
 `{"object": "sysvar", "name": "SYNTEXTDBPWD"}`
 
 you can get environment variable named `SYNTEXTDBPWD`.
+
+### `fp`
+
+File pointer can be passed with the following syntax:
+
+`{"object": "fp", "address": "address to your file"}`
+
+This will return file opened by `open()` function.
