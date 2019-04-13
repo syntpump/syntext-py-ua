@@ -94,6 +94,16 @@ class Predefinator:
         if not properties:
             properties = self.config[name]
 
+        # Add parent class' properties, but not overwrite already defined ones.
+        if "$parent" in self.config[name]:
+            properties = dict(
+                list(
+                    self.config[
+                        self.config[name]["$parent"]
+                    ].items()
+                ) + list(properties.items())
+            )
+
         for prop, value in properties.items():
 
             # '$'-marked fields are not properties for constructor

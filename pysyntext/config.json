@@ -96,5 +96,34 @@
 			"object": "defined",
 			"name": "logger"
 		}
+	},
+	"HumanTrainer": {
+		"$location": "libs.tmr.human",
+		"$parent": "MorphologyRecognizeTrainer"
+	},
+	"TrainByAffixes": {
+		"$location": "libs.tmr.trainbyaffixes",
+		"$parent": "MorphologyRecognizeTrainer"
+	},
+	"MorphologyRecognizeTrainer": {
+		"$location": "libs.morphtrain",
+		"db": {
+			"object": "defined",
+			"name": "db"
+		},
+		"settings": {
+			"object": "defined",
+			"name": "settings"
+		},
+		"logger": {
+			"object": "defined",
+			"name": "logger"
+		},
+		"staticposes": [
+    	    "ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "SCONJ",
+    	    "INTJ"
+   		],
+		"ignoreposes": ["SYM", "X", "PUNCT"],
+		"testenabled": false
 	}
 }
