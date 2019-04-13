@@ -31,8 +31,7 @@ class XPOSRecognitionAnalyzer:
     IMPROVE_UPOS = 0
 
     def __init__(
-        self, reader, recognizer, applierFunction, priorityList=None, limit=0,
-        offset=0
+        self, reader, recognizer, applierFunction, limit=0, offset=0
     ):
         """Prepare an analyser.
 
@@ -46,8 +45,6 @@ class XPOSRecognitionAnalyzer:
             recognizer (MorphologyRecognizer): A class specified in
                 morphology.py. It should contain recognize() method.
             applierFunction (function): Applier function for your recognizer.
-            priorityList (list): List of priorities as it documented in
-                MorhologyRecognizer module.
 
         """
         self.reader = reader

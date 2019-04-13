@@ -56,5 +56,25 @@
 	},
 	"UDTParser": {
 		"$location": "libs.ud.udt"
+	},
+	"XPOSRecognitionAnalyzer": {
+		"$location": "libs.accuracy",
+		"reader": {
+			"object": "class",
+			"name": "ConlluReader"
+		},
+		"limit": {
+			"object": "defined",
+			"name": "limit"
+		},
+		"offset": 0,
+		"recognizer": {
+			"object": "defined",
+			"name": "recognizer"
+		},
+		"applierFunction": {
+			"object": "function",
+			"name": "libs.morphology,MorphologyRecognizer,selectFirst"
+		}
 	}
 }
