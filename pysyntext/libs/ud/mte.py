@@ -4,6 +4,7 @@ It will use mtexposdata.json file in this directory in order to encode XPOS
 tag.
 """
 
+import os
 import json
 
 
@@ -20,8 +21,13 @@ class MTEParser:
         """
 
         try:
-            with open("libs/ud/mtexposdata.json") as file:
-                self.data = json.load(file)
+            with open(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "mtexposdata.json"
+                )
+            ) as fp:
+                self.data = json.load(fp)
         except FileNotFoundError:
             raise FileNotFoundError("File mtexposdata.json was not found!")
 

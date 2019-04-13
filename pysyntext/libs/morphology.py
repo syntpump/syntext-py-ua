@@ -146,7 +146,7 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token, withApplier=True):
+    def recognize(self, token, withApplier=True, showDB=False):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
@@ -154,6 +154,8 @@ class MorphologyRecognizer:
             token (str)
             withApplier (bool): Execute applier function over the DB response.
                 This will throw an error, if self.applier is not defined.
+            showDB (bool): If True, then function will also return result
+                without applier.
 
         Returns:
             dict: A rule as it stored in DB.
@@ -197,7 +199,10 @@ class MorphologyRecognizer:
                 "xpos": result["xpos"]
             })
 
-        return result
+        if showDB:
+            query = [self.unwrapXPOS(rule) for rule in query]
+
+        return result if not showDB else (result, query)
 
     def recognizeSpecial(self, token):
         """Recognize tokens where not db querying are needed (sym, punct etc.)
