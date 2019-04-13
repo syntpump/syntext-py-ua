@@ -139,18 +139,34 @@ class Predefinator:
 
         if obj["object"] == "fp":
             if isinstance(obj["address"], dict):
-                return open(self.parseObject(obj["address"]))
+                return open(
+                    self.parseObject(obj["address"]),
+                    mode=obj["mode"] if "mode" in obj else "r",
+                    encoding="utf-8"
+                )
             else:
-                return open(obj["address"])
+                return open(
+                    obj["address"],
+                    mode=obj["mode"] if "mode" in obj else "r",
+                    encoding="utf-8"
+                )
 
         if obj["object"] == "jsonfp":
             if isinstance(obj["address"], dict):
                 return json.load(
-                    open(self.parseObject(obj["address"]))
+                    open(
+                        self.parseObject(obj["address"]),
+                        mode=obj["mode"] if "mode" in obj else "r",
+                        encoding="utf-8"
+                    )
                 )
             else:
                 return json.load(
-                    open(obj["address"])
+                    open(
+                        obj["address"],
+                        mode=obj["mode"] if "mode" in obj else "r",
+                        encoding="utf-8"
+                    )
                 )
 
         if obj["object"] == "defined":

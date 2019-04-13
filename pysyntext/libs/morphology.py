@@ -146,12 +146,14 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token):
+    def recognize(self, token, withApplier=True):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
         Args:
             token (str)
+            withApplier (bool): Execute applier function over the DB response.
+                This will throw an error, if self.applier is not defined.
 
         Returns:
             dict: A rule as it stored in DB.
@@ -169,7 +171,7 @@ class MorphologyRecognizer:
 
         special = self.recognizeSpecial(token)
         if special:
-            return special if self.applier else [special]
+            return special if withApplier else [special]
         del special
 
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]
@@ -178,18 +180,18 @@ class MorphologyRecognizer:
         for func in funcs:
             query = func(token)
             if len(query) != 0:
-                result = self.applier(query, token) if self.applier else query
+                result = self.applier(query, token) if withApplier else query
                 break
 
         if not result:
             return None
 
         # Prioritizer won't process a list of tokens, just one
-        if self.applier:
+        if withApplier:
             self.prioritizer.apply(result, query)
 
         # This will delete all the keys except upos and xpos and parse the XPOS
-        if self.tagparser and self.applier:
+        if self.tagparser and withApplier:
             result = self.unwrapXPOS({
                 "upos": result["upos"],
                 "xpos": result["xpos"]
@@ -215,21 +217,21 @@ class MorphologyRecognizer:
         if strproc.isPunct(token):
             return {
                 "upos": "PUNCT",
-                "xpos": "U",
+                "xpos": self.tagparser.stringify({"upos": "PUNCT"}),
                 "name": "Punctuation"
             }
 
         if strproc.isSym(token):
             return {
                 "upos": "SYM",
-                "xpos": "X",
+                "xpos": self.tagparser.stringify({"upos": "SYM"}),
                 "name": "Residual"
             }
 
         if strproc.hasNonUkrainian(token):
             return {
                 "xpos": "X",
-                "upos": "X",
+                "upos": self.tagparser.stringify({"upos": "X"}),
                 "name": "Residual"
             }
 

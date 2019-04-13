@@ -71,10 +71,6 @@
 		"recognizer": {
 			"object": "defined",
 			"name": "recognizer"
-		},
-		"applierFunction": {
-			"object": "function",
-			"name": "libs.morphology,MorphologyRecognizer,selectFirst"
 		}
 	}
 }

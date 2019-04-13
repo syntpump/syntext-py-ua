@@ -47,7 +47,11 @@ you can get environment variable named `SYNTEXTDBPWD`.
 
 File pointer can be passed with the following syntax:
 
-`{"object": "fp", "address": "address to your file"}`
+`{
+	"object": "fp",
+	"address": "address to your file", 
+	"mode": "python-like mode of the opening of the file"
+}`
 
 This will return file opened by `open()` function.
 

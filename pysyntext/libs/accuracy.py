@@ -31,7 +31,7 @@ class XPOSRecognitionAnalyzer:
     IMPROVE_UPOS = 0
 
     def __init__(
-        self, reader, recognizer, applierFunction, limit=0, offset=0
+        self, reader, recognizer, limit=0, offset=0
     ):
         """Prepare an analyser.
 
@@ -44,14 +44,12 @@ class XPOSRecognitionAnalyzer:
                 be skipped.
             recognizer (MorphologyRecognizer): A class specified in
                 morphology.py. It should contain recognize() method.
-            applierFunction (function): Applier function for your recognizer.
 
         """
         self.reader = reader
         self.limit = limit if limit != 0 else float("inf")
         self.offset = offset if offset else 0
         self.recognizer = recognizer
-        self.applier = applierFunction
 
     def init(self):
         """Init a generator function next() does the next check and returns
@@ -93,11 +91,11 @@ class XPOSRecognitionAnalyzer:
                 xpos = self.reader.extractProperty(
                     line, prop=self.reader.XPOSNAME
                 )
-
-                result = self.recognizer.recognize(token)
-                applierResult = self.recognizer.recognize(
-                    token, self.applier
+                result = self.recognizer.recognize(
+                    token,
+                    withApplier=False
                 )
+                applierResult = self.recognizer.recognize(token)
 
                 self.CHECKED += 1
 
