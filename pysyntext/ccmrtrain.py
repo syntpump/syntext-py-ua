@@ -57,7 +57,7 @@ ctxt = predef.inited(
     logger=logger,
     recognizer=predef.inited(
         "MorphologyRecognizer",
-        collection=lambda name: db.cli.get_collection(name)
+        collection=db.cli.get_collection
     )
 )
 

@@ -49,7 +49,7 @@ class Predefinator:
 
         classobj = classobj.split(".")
 
-        while len(classobj) > 0:
+        while classobj:
             obj = getattr(obj, classobj.pop(0))
 
         if not function:
@@ -57,7 +57,7 @@ class Predefinator:
 
         function = function.split(".")
 
-        while len(function) > 0:
+        while function:
             obj = getattr(obj, function.pop(0))
 
         return obj
@@ -139,11 +139,12 @@ class Predefinator:
         if obj["object"] == "class":
             if "props" not in obj:
                 return self.inited(obj["name"])
-            else:
-                return self.inited(
-                    properties=obj["props"],
-                    name=obj["name"]
-                )
+
+            return self.inited(
+                properties=obj["props"],
+                name=obj["name"]
+            )
+
         if obj["object"] == "sysvar":
             return os.getenv(obj["name"])
 
@@ -154,12 +155,12 @@ class Predefinator:
                     mode=obj["mode"] if "mode" in obj else "r",
                     encoding="utf-8"
                 )
-            else:
-                return open(
-                    obj["address"],
-                    mode=obj["mode"] if "mode" in obj else "r",
-                    encoding="utf-8"
-                )
+
+            return open(
+                obj["address"],
+                mode=obj["mode"] if "mode" in obj else "r",
+                encoding="utf-8"
+            )
 
         if obj["object"] == "jsonfp":
             if isinstance(obj["address"], dict):
@@ -170,14 +171,14 @@ class Predefinator:
                         encoding="utf-8"
                     )
                 )
-            else:
-                return json.load(
-                    open(
-                        obj["address"],
-                        mode=obj["mode"] if "mode" in obj else "r",
-                        encoding="utf-8"
-                    )
+
+            return json.load(
+                open(
+                    obj["address"],
+                    mode=obj["mode"] if "mode" in obj else "r",
+                    encoding="utf-8"
                 )
+            )
 
         if obj["object"] == "defined":
             return kwargs[obj["name"]]
