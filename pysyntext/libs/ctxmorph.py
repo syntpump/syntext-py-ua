@@ -2,7 +2,6 @@
 """
 
 from libs.strproc import tokenize
-from libs.morphology import MorphologyRecognizer
 from ctx19.parsers import Contextual19Parser
 
 
@@ -13,7 +12,6 @@ class ContextualProcessor:
     Properties:
         collection (Collection): Collection for Ctx19 rules.
         recognizer (MoprhologyRecognizer)
-        applier (function): Applier function for MorphologyRecognizer.
         priority (dict): Priority list for MorphologyRecognizer.
         tagparser (class): Class with 'parse' function which can parse XPOSes
            from DB.
@@ -24,34 +22,18 @@ class ContextualProcessor:
 
     """
 
-    def __init__(
-        self, collection, applier, priority=None, tagparser=None,
-        rulescoll=None
-    ):
+    def __init__(self, recognizer, rulescoll=None):
         """Init the class with specified db connection.
 
         Args:
-            collection (Collection): A Collection from pymongo that will be
-                used for rules searching.
-            applier (function): Applier function for MorphologyRecognizer.
-            priority (dict): Priority list for MorphologyRecognizer.
-            tagparser (class): Class with 'parse' function which can parse
-                XPOSes from DB.
+            recognizer (MorphologyRecognizer)
             rulescoll (Collection): A pymongo Collection that will be used for
                 contextual correcting. It must contains rules in Ctx19 object
                 representation.
 
-        For applier and priority documentation see in MorphologyRecognizer
-        docstring.
-
         """
 
-        self.collection = collection
-        self.recognizer = MorphologyRecognizer(
-            collection, tagparser=tagparser, priorityList=priority
-        )
-        self.tagparser = tagparser
-        self.applier = applier
+        self.recognizer = recognizer
         self.ctx19 = Contextual19Parser()
 
         if not rulescoll:
@@ -89,7 +71,7 @@ class ContextualProcessor:
         for token in tokens:
             recognized = self.recognizer.recognize(
                 token=token,
-                applierFunc=self.applier
+                withApplier=True
             )
             # Return empty dict if token was not recognized
             if not recognized:
@@ -115,6 +97,6 @@ class ContextualProcessor:
 
         # Modify XPOS tags in tokens according to their new properties
         for token in sentence:
-            token["xpos"] = self.tagparser.stringify(token)
+            token["xpos"] = self.recognizer.tagparser.stringify(token)
 
         return sentence
