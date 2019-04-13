@@ -6,19 +6,30 @@
 	},
 	"MorphologyRecognizer": {
 		"$location": "libs.morphology",
-		"collection": "xposrules",
+		"collection": {
+			"object": "lambda",
+			"data" : "xposrules",
+			"name": "collection"
+		},
 		"tagparser": {
 			"object": "class",
-			"name": "MTEParser"
+			"name": "UDTParser"
 		},
-		"priorityList": "dominations.json"
+		"priorityList": {
+			"object": "jsonfp",
+			"address": "dominations.json"
+		},
+		"applierFunc": {
+			"object": "function",
+			"name": "libs.morphology,MorphologyRecognizer,selectByEnding"
+		}
 	},
 	"ContextualProcessor": {
 		"$location": "libs.ctxmorph",
 		"collection": "xposrules",
 		"applier": {
 			"object": "function",
-			"name": "libs.morphology.MorphologyRecognizer.selectByEnding"
+			"name": "libs.morphology,MorphologyRecognizer,selectByEnding"
 		},
 		"priority": "dominations.json",
 		"tagparser": {
@@ -30,11 +41,15 @@
 	"ConlluReader": {
 		"$location": "libs.ud.conllu",
 		"fp": {
-			"object": "sysvar",
-			"name": "CONLLUPATH"
+			"object": "fp",
+			"address": {
+				"object": "sysvar",
+				"name": "CONLLUPATH"
+			}
 		},
 		"ignoreComments": false,
-		"strict": false
+		"strict": false,
+		"replaceMTE": true
 	},
 	"MTEParser": {
 		"$location": "libs.ud.mte"
