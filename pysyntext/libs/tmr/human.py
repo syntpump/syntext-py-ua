@@ -211,7 +211,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
         """Show UI for searching rules.
         """
 
-        self.logger.output("Type a filter: ", end="")
+        self.logger.output("Type a filter: ", rewritable=False)
 
         try:
             cursor = self.rulescollection.find(
@@ -235,7 +235,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
         """Show UI for deleting rules.
         """
 
-        self.logger.output("Type ID to delete: ", end="")
+        self.logger.output("Type ID to delete: ", rewritable=False)
         try:
             self.rulescollection.find_one_and_delete({
                 "_id": ObjectId(str(input()))
@@ -266,7 +266,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
             try:
                 self.logger.output(
                     "Type data for your rule, separating with space: ",
-                    end=""
+                    rewritable=False
                 )
                 data = str(input()).split(" ")
                 self.logger.output(

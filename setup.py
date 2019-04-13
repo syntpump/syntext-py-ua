@@ -5,7 +5,7 @@ with open("README.md", encoding="utf-8") as fp:
 
 setuptools.setup(
     name="pysyntext",
-    version="0.1",
+    version="0.2",
     description="Syntext NLP project",
     long_description=long_description,
     long_description_content_type="text/markdown",

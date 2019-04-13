@@ -2,8 +2,8 @@
 """
 
 import json
-from importlib import import_module
 import os
+from importlib import import_module
 
 
 class Predefinator:
@@ -15,16 +15,24 @@ class Predefinator:
 
     """
 
-    def __init__(self):
+    def __init__(self, fp):
+        """Reads configs from passed fp and remember it.
 
-        with open('config.json') as fp:
-            self.config = json.load(fp)
+        Arguments:
+            fp (file)
 
-    def getByPath(self, path):
+        """
+
+        self.config = json.load(fp)
+
+    def getByPath(self, package, classobj=None, function=None):
         """Returns object by its path.
 
         Properties:
-            path (str): Path to object.
+            package (str)
+            classobj (str): If defined, returns class from package.
+            function (str): If defined, function with given name will be
+                returned.
 
         Returns:
             uninitialized class, function
@@ -34,15 +42,27 @@ class Predefinator:
 
         """
 
-        path = path.split(".")
-        obj = import_module(path.pop(0))
+        obj = import_module(package)
 
-        while path:
-            obj = getattr(obj, path.pop(0))
+        if not classobj:
+            return obj
+
+        classobj = classobj.split(".")
+
+        while classobj:
+            obj = getattr(obj, classobj.pop(0))
+
+        if not function:
+            return obj
+
+        function = function.split(".")
+
+        while function:
+            obj = getattr(obj, function.pop(0))
 
         return obj
 
-    def inited(self, name=None, properties=None, location=None):
+    def inited(self, name=None, properties=None, location=None, **kwargs):
         """Returns well-initialized class using configs from self.config.
 
         Args:
@@ -51,6 +71,8 @@ class Predefinator:
                 passed, then self.config will be used.
             location (str): Location where to look for class. If not passed
                 then self.config will be used.
+            **kwargs: Lambda-functions which will return custom objects.
+                (See docs for `lambda` objects).
 
         Returns:
             initialized class
@@ -64,13 +86,23 @@ class Predefinator:
             raise TypeError("Name of class or its location must be given.")
 
         if name:
-            location = self.config[name]["$location"] + "." + name
+            location = self.config[name]["$location"] + "," + name
 
-        obj = self.getByPath(location)
+        obj = self.getByPath(*location.split(','))
         initprops = {}
 
         if not properties:
             properties = self.config[name]
+
+        # Add parent class' properties, but not overwrite already defined ones.
+        if "$parent" in self.config[name]:
+            properties = dict(
+                list(
+                    self.config[
+                        self.config[name]["$parent"]
+                    ].items()
+                ) + list(properties.items())
+            )
 
         for prop, value in properties.items():
 
@@ -80,21 +112,77 @@ class Predefinator:
 
             if not isinstance(value, dict):
                 initprops[prop] = value
+
             else:
-                if value["object"] == "function":
-                    initprops[prop] = self.getByPath(value["name"])
-                elif value["object"] == "class":
-                    # Default properties from config.json must be used
-                    if "props" not in value:
-                        initprops[prop] = self.inited(value["name"])
-                    # Special properties are defined
-                    else:
-                        initprops[prop] = self.inited(
-                            properties=value["props"],
-                            location=value["name"]
-                        )
-                elif value["object"] == "sysvar":
-                    initprops[prop] = os.getenv(value["name"])
+                initprops[prop] = self.parseObject(value, **kwargs)
 
         # Unpack dictionary with properties and initialize obj, which is class
         return obj(**initprops)
+
+    def parseObject(self, obj, **kwargs):
+        """Parse dictionary parameters from config.json.
+
+        Arguments:
+            obj (dict): Property dictionary as it defined in config.json
+            **kwargs: Arguments for "lambda" and "defined" objects
+
+        Returns:
+            *: Initialized object
+
+        """
+
+        if obj["object"] == "function":
+            return self.getByPath(
+                *obj["name"].split(",")
+            )
+
+        if obj["object"] == "class":
+            if "props" not in obj:
+                return self.inited(obj["name"])
+
+            return self.inited(
+                properties=obj["props"],
+                name=obj["name"]
+            )
+
+        if obj["object"] == "sysvar":
+            return os.getenv(obj["name"])
+
+        if obj["object"] == "fp":
+            if isinstance(obj["address"], dict):
+                return open(
+                    self.parseObject(obj["address"]),
+                    mode=obj["mode"] if "mode" in obj else "r",
+                    encoding="utf-8"
+                )
+
+            return open(
+                obj["address"],
+                mode=obj["mode"] if "mode" in obj else "r",
+                encoding="utf-8"
+            )
+
+        if obj["object"] == "jsonfp":
+            if isinstance(obj["address"], dict):
+                return json.load(
+                    open(
+                        self.parseObject(obj["address"]),
+                        mode=obj["mode"] if "mode" in obj else "r",
+                        encoding="utf-8"
+                    )
+                )
+
+            return json.load(
+                open(
+                    obj["address"],
+                    mode=obj["mode"] if "mode" in obj else "r",
+                    encoding="utf-8"
+                )
+            )
+
+        if obj["object"] == "defined":
+            return kwargs[obj["name"]]
+
+        if obj["object"] == "lambda":
+            # Following execute lambda expression.
+            return kwargs[obj["name"]](obj["data"])

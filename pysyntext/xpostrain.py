@@ -1,6 +1,6 @@
 from libs.params import Params
 from libs.logs import Logger
-from importlib import import_module
+from predefinator import Predefinator
 import sys
 
 
@@ -20,33 +20,25 @@ Name            Default     Description
 --tempdb ...    localhost   DB which will be used as temporary memory.
 --logfile ...   -->         File to write full logs in. Default:
                             xpostrainlog.md
---path ...      *requiered  Path to Universal Dependencies file.
---reader ...    *requiered  Name of script and class of reader you want to
-                            choose. That will be found in libs/ud directory.
-                            Example:
-                            conllu.ConlluReader
--unstrict ...   False       Do not check GC format strictly.
---trainer...    *requiered  Name of script and class of trainer you want to
-                            choose. That will be found in libs/tmr directory.
-                            Examples:
-                            trainbyaffixes.TrainByAffixes
-                            All before last dot must be a path to module.
+--reader ...    *requiered  Name of class of reader. Example: ConlluReader.
+--trainer...    *requiered  Name of class of trainer. Example: HumanTrainer.
 --entry ...     *requiered  Name of iteration function for your class. (See
                             docs for this name). It's a function that perform
                             one step in learning process.
 --limit ...     0           Limit of tokens to be processed. Can be used for
                             testing script. Pass '0' to set it to infinite.
 --offset ...    0           Skip first N tokens from GC.
--useUDT         False       If enabled, UDT tags instead of MTE will be used.
--test           False       Do not upload any data to dbhost.
+--confs         config.json Address to file with configurations.
 ...Plus additional parameters needed for the trainer you chose.
 """ # noqa E122
     )
     raise SystemExit
 
-if not argv.has("--path"):
-    argv.request("path", text="Provide a path to UD file")
-
+predef = Predefinator(
+    fp=open(
+        argv.get("--confs", default="config.json"), encoding="utf-8"
+    )
+)
 
 logger = Logger(
     fp=open(argv.get("--logfile", default="xpostrainlog.md"), mode="a+"),
@@ -58,27 +50,17 @@ logger.output("Loading...")
 
 from libs.db import DB # noqa E402
 
-
-trainer = argv.get("--trainer").split(".")
-
-# Get class from module and init it
-trainer = getattr(import_module("libs.tmr." + trainer[0]), trainer[1])(
-    db=DB(
-        host=argv.get("--dbhost", default="atlas"),
-        dbname="syntextua"
-    ),
-    logger=logger,
-    # POSes which don't declense. Remember them as exceptions.
-    staticposes=[
-        "ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "SCONJ", "INTJ"
-    ],
-    # POSes which can be recognized automatically, skip them.
-    ignoreposes=["SYM", "X", "PUNCT"],
-    testenabled=True if argv.has("-test") else False,
-    settings=argv.getdict()
+db = DB(
+    host=argv.get("--dbhost", default="atlas"),
+    dbname="syntextua"
 )
 
-reader = argv.get("--reader").split(".")
+trainer = predef.inited(
+    argv.get("--trainer"),
+    db=db,
+    settings=argv.getdict(),
+    logger=logger
+)
 
 logger.output("loaded.")
 
@@ -92,12 +74,7 @@ try:
         ),
         # This will import class with specified name from gc module and init it
         # with given parameters.
-        gcreader=getattr(import_module("libs.ud." + reader[0]), reader[1])(
-            fp=open(argv.get("--path"), encoding="utf-8"),
-            ignoreComments=True,
-            strict=False if argv.has("-unstrict") else True,
-            replaceMTE=True if argv.has("-useUDT") else False
-        ),
+        gcreader=predef.inited(argv.get("--reader")),
         limit=int(argv.get("--limit", default=0)),
         offset=int(argv.get("--offset", default=0))
     )

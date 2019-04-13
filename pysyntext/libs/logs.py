@@ -61,7 +61,11 @@ class Logger:
             default=lambda obj: str(type(obj)),
             ensure_ascii=False
         )
-        print(f"```json\n{dumps}\n```", file=self.fp)
+
+        try:
+            print(f"```json\n{dumps}\n```", file=self.fp)
+        except UnicodeEncodeError:
+            print("(encoding error occured here.)", file=self.fp)
 
     def write(self, string):
         """Put the data into self.fp.
@@ -74,7 +78,10 @@ class Logger:
         if not self.enabled:
             return
 
-        print(string, end="", file=self.fp)
+        try:
+           print(string, end="", file=self.fp)
+        except UnicodeEncodeError:
+            print("(encoding error occured here.)", file=self.fp)
 
     def output(self, string, rewritable=False):
         """Print a message into self.stream.

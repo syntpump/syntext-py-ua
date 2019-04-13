@@ -24,6 +24,7 @@ Example:
 
 """
 
+import os
 import json
 from textwrap import wrap
 from ..arrproc import findIn
@@ -42,7 +43,12 @@ class UDTParser:
         """
 
         try:
-            with open("libs/ud/udtxposdata.json") as fp:
+            with open(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "udtxposdata.json"
+                )
+            ) as fp:
                 self.data = json.load(fp)
         except FileNotFoundError:
             raise FileNotFoundError("File udtxposdata.json was not found!")

@@ -13,8 +13,7 @@ class ContextualProcessorTrainer:
     """
 
     def __init__(
-        self, db, reader, rulescoll, logger, tagparser, cmpkeys,
-        strictgc=False, applier=None, priority=None
+        self, db, reader, recognizer, logger, cmpkeys
     ):
         """Init the trainer for contextual processor.
 
@@ -28,8 +27,6 @@ class ContextualProcessorTrainer:
             tagparser (?): Class of XPOS tags parser.
             cmpkeys (list): List of keys to be compared in tokens between two
                 contexts.
-            applier, priority: Applier function and priority list for
-                MorphologyRecognizer.
 
         Properties:
             db, reader, logger, cmpkeys, tagparser: Values you are passing to
@@ -45,12 +42,11 @@ class ContextualProcessorTrainer:
         self.reader = reader,
         self.collection = db.createCollection(db.EMENDPOS)
         self.ctxprocc = ContextualProcessor(
-            collection=rulescoll, applier=applier, priority=priority,
-            tagparser=tagparser
+            recognizer=recognizer, rulescoll=None
         )
+        self.recognizer = recognizer
         self.reader = reader
         self.cmpkeys = cmpkeys
-        self.tagparser = tagparser
 
         logger.write(f"Created collection: {self.collection.name}\n")
 
@@ -210,7 +206,6 @@ class ContextualProcessorTrainer:
 
         # Compare GC and tagged sentence
         for gctoken, recognized in zip(sentence, tagged):
-
             if (
                 # Some of tokens is missed, so lengths of lists differs
                 not gctoken or not recognized or
@@ -239,7 +234,7 @@ class ContextualProcessorTrainer:
         # Parse XPOS tags if needed
         if parseTags:
             for token in sentence:
-                token.update(self.tagparser.parse(token["xpos"]))
+                token.update(self.recognizer.tagparser.parse(token["xpos"]))
 
         for gc, tagged in zip(
             context(sentence, r), context(tagged, r)
@@ -256,7 +251,7 @@ class ContextualProcessorTrainer:
             yield (ifblock, thenblock)
 
     def generateRules(
-        self, r=3, parsetags=True, limit=0, offset=0, swallowexcs=None
+        self, r=3, parsetags=True, limit=0, offset=0
     ):
         """This function fetch sentences in self.reader by its `nextSentence`
         method and yield rules.
@@ -266,10 +261,6 @@ class ContextualProcessorTrainer:
             parsetags (bool): Set to True to parse XPOS tags in sentence using
                 self.tagparser.
             limit, offset (int): Set limitations on sentences to be processed.
-            swallowexcs (*): If your tag parser raises errors that can be
-                ignored, pass them here.
-                For example, if tag parser can't parse XPOS tag for some word
-                in context, the rule with this words can be just skipped.
 
         Yields:
             tuple: A Ctx19 rule:
@@ -333,9 +324,6 @@ class ContextualProcessorTrainer:
 
             except (EOFError):
                 break
-
-            except swallowexcs:
-                continue
 
             except (ContinueException, TokenizationError, TaggingError):
                 continue
@@ -549,9 +537,7 @@ class ContextualProcessorTrainer:
 
         """
 
-        generated = self.generateRules(
-            r, parsetags, limit, offset, swallowexcs
-        )
+        generated = self.generateRules(r, parsetags, limit, offset)
 
         simplified = list()
 
