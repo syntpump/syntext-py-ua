@@ -10,7 +10,9 @@ class MorphologyRecognizer:
     """This class contains methods for morphology processing.
     """
 
-    def __init__(self, collection, tagparser=None, priorityList=None):
+    def __init__(
+        self, collection, tagparser=None, priorityList=None, applierFunc=None
+    ):
         """Init the recognizer with specified db connection.
 
         Args:
@@ -20,6 +22,15 @@ class MorphologyRecognizer:
                 of the token.
             priorityList (list): Specify dominating of one type over another.
                 (See the example below).
+            applierFunc (function): Searching might return a bundle of rules,
+                not just one correct, so you can specify a function which will
+                extract element you're really need. You can also use a static
+                method selectFirst() from this class to select the first
+                rule from the list.
+
+        applierFunc Args:
+            list: List of rules from DB.
+            token: Current token.
 
         priorityList example:
             Suppose, we have this data:
@@ -48,6 +59,7 @@ class MorphologyRecognizer:
         self.prioritizer = Prioritizer(priorityList)
         self.collection = collection
         self.tagparser = tagparser
+        self.applier = applierFunc
 
     def getRulesFor(self, token):
         """Guess all the rules that can be applied to this token.
@@ -134,21 +146,12 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token, applierFunc=None):
+    def recognize(self, token):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
         Args:
             token (str)
-            applierFunc (function): Searching might return a bundle of rules,
-                not just one correct, so you can specify a function which will
-                extract element you're really need. You can also use a static
-                method selectFirst() from this class to select the first
-                rule from the list.
-
-        applierFunc Args:
-            list: List of rules from DB.
-            token: Current token.
 
         Returns:
             dict: A rule as it stored in DB.
@@ -166,7 +169,7 @@ class MorphologyRecognizer:
 
         special = self.recognizeSpecial(token)
         if special:
-            return special if applierFunc else [special]
+            return special if self.applier else [special]
         del special
 
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]
@@ -175,18 +178,18 @@ class MorphologyRecognizer:
         for func in funcs:
             query = func(token)
             if len(query) != 0:
-                result = applierFunc(query, token) if applierFunc else query
+                result = self.applier(query, token) if self.applier else query
                 break
 
         if not result:
             return None
 
         # Prioritizer won't process a list of tokens, just one
-        if applierFunc:
+        if self.applier:
             self.prioritizer.apply(result, query)
 
         # This will delete all the keys except upos and xpos and parse the XPOS
-        if self.tagparser and applierFunc:
+        if self.tagparser and self.applier:
             result = self.unwrapXPOS({
                 "upos": result["upos"],
                 "xpos": result["xpos"]
