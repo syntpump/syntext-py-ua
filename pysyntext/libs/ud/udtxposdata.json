@@ -48,10 +48,10 @@
 		"Aspect": {
 			"name": "as",
 			"props": {
-				"Perf": "pr",
-				"Prosp": "pr",
-				"Prog": "pg",
-				"Iter": "it"
+				"Perf": "per",
+				"Prosp": "pro",
+				"Prog": "prg",
+				"Iter": "ite"
 			}
 		},
 		"Case": {
@@ -174,7 +174,7 @@
 		"PartType": {
 			"name": "pt",
 			"props": {
-				"Conseq": "cq"
+				"Conseq": "csq"
 			}
 		},
 		"Person": {
@@ -319,15 +319,15 @@
 		"Variant": {
 			"name": "va",
 			"props": {
-				"Short": "sh",
-				"Uncontr": "un"
+				"Short": "sho",
+				"Uncontr": "unc"
 			}
 		},
 		"Animacy[gram]": {
 			"name": "ag",
 			"props": {
-				"Anim": "an",
-				"Inan": "in"
+				"Anim": "ani",
+				"Inan": "ina"
 			}
 		},
 		"Orth": {
