@@ -2,8 +2,8 @@
 """
 
 import json
-from importlib import import_module
 import os
+from importlib import import_module
 
 
 class Predefinator:
@@ -25,11 +25,14 @@ class Predefinator:
 
         self.config = json.load(fp)
 
-    def getByPath(self, path):
+    def getByPath(self, package, classobj=None, function=None):
         """Returns object by its path.
 
         Properties:
-            path (str): Path to object.
+            package (str)
+            classobj (str): If defined, returns class from package.
+            function (str): If defined, function with given name will be
+                returned.
 
         Returns:
             uninitialized class, function
@@ -39,11 +42,23 @@ class Predefinator:
 
         """
 
-        path = path.split(".")
-        obj = import_module(path.pop(0))
+        obj = import_module(package)
 
-        while path:
-            obj = getattr(obj, path.pop(0))
+        if not classobj:
+            return obj
+
+        classobj = classobj.split(".")
+
+        while len(classobj) > 0:
+            obj = getattr(obj, classobj.pop(0))
+
+        if not function:
+            return obj
+
+        function = function.split(".")
+
+        while len(function) > 0:
+            obj = getattr(obj, function.pop(0))
 
         return obj
 
