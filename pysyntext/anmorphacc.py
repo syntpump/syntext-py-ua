@@ -22,6 +22,7 @@ Name             Default     Description
 --limit ...      0           Limit of tokens to be processed. Set to '0' to set
                              it to infinite.
 --offset ...     0           Skip first N tokens from UD file you've specified.
+--confs         config.json Address to file with configurations.
 """ # noqa E122
         )
     raise SystemExit

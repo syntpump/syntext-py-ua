@@ -21,6 +21,7 @@ Name             Default     Description
                              set it to infinite.
 --offset ...     0           Skip first N sentences from UD file you've
                              specified.
+--confs         config.json Address to file with configurations.
 """ # noqa E122
         )
     raise SystemExit
