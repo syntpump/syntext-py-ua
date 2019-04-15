@@ -12,8 +12,11 @@ class Predefinator:
 
     Properties:
         config (dict): Configurations.
+        MODULE_NAME (str): Name of module where classes will be loaded.
 
     """
+
+    MODULE_NAME = "pysyntext"
 
     def __init__(self, fp):
         """Reads configs from passed fp and remember it.
@@ -42,7 +45,7 @@ class Predefinator:
 
         """
 
-        obj = import_module(package)
+        obj = import_module(self.MODULE_NAME + "." + package)
 
         if not classobj:
             return obj
