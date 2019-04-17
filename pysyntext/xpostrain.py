@@ -28,7 +28,6 @@ Name            Default     Description
 --limit ...     0           Limit of tokens to be processed. Can be used for
                             testing script. Pass '0' to set it to infinite.
 --offset ...    0           Skip first N tokens from GC.
---useUDT        False       Determine whether to use UDT in ConlluReader or not.
 --tagparser     (optional)  Name of a tagparser class if your trainer need it.
 --confs         config.json Address to file with configurations.
 ...Plus additional parameters needed for the trainer you chose.
