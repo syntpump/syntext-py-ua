@@ -8,8 +8,8 @@ from importlib import import_module
 from libs.arrproc import unduplicate, keyExtract
 from libs.ui import expect
 from pprint import pprint
-import json
 from bson import ObjectId
+import json
 
 
 class HumanTrainer(MorphologyRecognizeTrainer):
@@ -38,6 +38,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                 Required.
             priorityList (str): Link to .json file with priority list
                 Optional.
+            tagparser (str): Name of the class of tag parser.
 
         """
 
@@ -62,7 +63,9 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
         recognizer = MorphologyRecognizer(
             collection=self.rulescollection,
-            priorityList=priorityList
+            priorityList=priorityList,
+            applierFunc=applier,
+            tagparser=self.settings["tagparser"]
         )
 
         counter = 0
@@ -104,10 +107,9 @@ class HumanTrainer(MorphologyRecognizeTrainer):
 
                             self.logger.output(f"Current token is: {token}")
 
-                            result = recognizer.recognize(token)
-                            appRes = recognizer.recognize(
-                                token, applier
-                            )
+                            result = recognizer.recognize(
+                                token, withApplier=False)
+                            appRes = recognizer.recognize(token)
 
                             if appRes:
                                 self.logger.output(
@@ -119,7 +121,7 @@ class HumanTrainer(MorphologyRecognizeTrainer):
                                 if xpos == appRes["xpos"]:
                                     ruleType = (
                                         appRes['type']
-                                        if appRes['type'] else "<unknown>"
+                                        if 'type' in appRes else "<unknown>"
                                     )
                                     self.logger.output(
                                         "Recognized correctly. "
