@@ -7,31 +7,36 @@ class CYKAnalyzer:
     context-free grammar.
     """
 
-    def __init__(self, ctx):
+    def __init__(self, ctx, collection):
         """Init the CYKAnalyzer, upload the rules from db to self.grammar.
 
         Args:
             ctx (ContextualProcessor): Initialized class.
+            collection (pymongo.Collection): MongoDB collection which store
+                grammar rules.
 
         """
         self.ctx = ctx
 
-        # Should download the grammar from db in the future.
-        self.grammar = [
+        # This will download all the rules from DB to this class. Assume, that
+        # they have correct structure.
+        self.grammar = [doc for doc in collection.find({})]
 
-            {'upos': 'NP', 'prod': ('ADJ', 'NOUN')},
+        # self.grammar = [
 
-            {'upos': 'VP', 'prod': ('VERB', 'PRON')},
-            {'upos': 'VP', 'prod': ('VERB', 'NOUN')},
+        #     {'upos': 'NP', 'prod': ('ADJ', 'NOUN')},
 
-            {'upos': 'S', 'prod': ('NOUN', 'VERB')},
-            {'upos': 'S', 'prod': ('NP', 'VERB')},
-            {'upos': 'S', 'prod': ('NOUN', 'VP')},
-            {'upos': 'S', 'prod': ('NP', 'VP')},
+        #     {'upos': 'VP', 'prod': ('VERB', 'PRON')},
+        #     {'upos': 'VP', 'prod': ('VERB', 'NOUN')},
 
-            # more to come
+        #     {'upos': 'S', 'prod': ('NOUN', 'VERB')},
+        #     {'upos': 'S', 'prod': ('NP', 'VERB')},
+        #     {'upos': 'S', 'prod': ('NOUN', 'VP')},
+        #     {'upos': 'S', 'prod': ('NP', 'VP')},
 
-        ]
+        #     # more to come
+
+        # ]
 
     def wfst_of(self, sentence):
         """Create a Well-Formed Substring Table (2-dimensional list of
