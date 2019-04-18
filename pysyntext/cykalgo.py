@@ -1,30 +1,20 @@
 """Contains a class implementing the CYK algorithm.
 """
 
-from predefinator import Predefinator
-from libs.ctxmorph import ContextualProcessor
-from libs.db import DB
-
 
 class CYKAnalyzer:
-    """Class that uses CYK algorithm to parse sentences
-    with the help of context-free grammar.
+    """Class that uses CYK algorithm to parse sentences with the help of
+    context-free grammar.
     """
 
-    def __init__(self):
-        """Init the CYKAnalyzer.
+    def __init__(self, ctx):
+        """Init the CYKAnalyzer, upload the rules from db to self.grammar.
+
+        Arguments:
+            ctx (ContextualProcessor): Initialized class.
+
         """
-
-        predef = Predefinator(fp=open("config.json"))
-
-        self.db = DB(host="atlas", dbname="syntextua")
-
-        self.ctx = ContextualProcessor(
-            recognizer=predef.inited("MorphologyRecognizer",
-                                     collection=lambda name: self.db.cli.get_collection(
-                                         name)
-                                     ),
-        )
+        self.ctx = ctx
 
         # Should download the grammar from db in the future.
         self.grammar = [
