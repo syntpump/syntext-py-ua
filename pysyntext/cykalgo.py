@@ -10,7 +10,7 @@ class CYKAnalyzer:
     def __init__(self, ctx):
         """Init the CYKAnalyzer, upload the rules from db to self.grammar.
 
-        Arguments:
+        Args:
             ctx (ContextualProcessor): Initialized class.
 
         """
@@ -42,8 +42,8 @@ class CYKAnalyzer:
             sentence (str)
 
         Returns:
-            list: WFST with the tagged words from the
-                given sentence on the main diagonal.
+            list: WFST with the tagged words from the given sentence on the
+            main diagonal.
 
         """
 
@@ -65,14 +65,22 @@ class CYKAnalyzer:
 
         """
 
-        print ('\nWFST ' + ' '.join([("%-4d" % i)
-                                     for i in range(1, len(wfst))]))
+        print('\nWFST ' + ' '.join(
+            [("%-4d" % i)
+             for i
+             in range(1, len(wfst))])
+        )
         for i in range(len(wfst) - 1):
-            print ("%d    " % i, end='')
+            print("%d    " % i, end='')
             for j in range(1, len(wfst)):
-                print ("%-5s" %
-                       (wfst[i][j]['upos'] if wfst[i][j] else '.'), end='')
-            print ()
+                print(
+                    "%-5s" % (
+                        wfst[i][j]['upos']
+                        if wfst[i][j]
+                        else '.'),
+                    end=''
+                )
+            print()
 
     def completed(self, wfst):
         """Complete the given WFST using grammar
@@ -91,7 +99,14 @@ class CYKAnalyzer:
             for start in range(numtokens - span):
                 end = start + span
                 for mid in range(start + 1, end):
-                    nt1, nt2 = wfst[start][mid]['upos'] if wfst[start][mid] else None,wfst[mid][end]['upos'] if wfst[mid][end] else None
+                    nt1, nt2 = (
+                        wfst[start][mid]['upos']
+                        if wfst[start][mid]
+                        else None,
+                        wfst[mid][end]['upos']
+                        if wfst[mid][end]
+                        else None
+                    )
                     for production in self.grammar:
                         if nt1 and nt2 and (nt1, nt2) == production['prod']:
                             wfst[start][end] = production
