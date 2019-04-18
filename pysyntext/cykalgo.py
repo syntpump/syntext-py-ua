@@ -39,16 +39,14 @@ class CYKAnalyzer:
         # ]
 
     def wfst_of(self, sentence):
-        """Create a Well-Formed Substring Table (2-dimensional list of
-        dictionaries and chars used by the algorithm) with the tagged words
-        from the given sentence on the main diagonal.
+        """Create and complete a Well-Formed Substring Table (2-dimensional list of
+        dictionaries and chars used by the algorithm).
 
         Args:
             sentence (str)
 
         Returns:
-            list: WFST with the tagged words from the given sentence on the
-            main diagonal.
+            list: Completed WFST.
 
         """
 
@@ -60,6 +58,24 @@ class CYKAnalyzer:
 
         for i in range(numtokens):
             wfst[i][i + 1] = tokens[i]
+
+        numtokens += 1
+
+        for span in range(2, numtokens):
+            for start in range(numtokens - span):
+                end = start + span
+                for mid in range(start + 1, end):
+                    nt1, nt2 = (
+                        wfst[start][mid]['upos']
+                        if wfst[start][mid]
+                        else None,
+                        wfst[mid][end]['upos']
+                        if wfst[mid][end]
+                        else None
+                    )
+                    for production in self.grammar:
+                        if nt1 and nt2 and (nt1, nt2) == production['prod']:
+                            wfst[start][end] = production
         return wfst
 
     def display(self, wfst):
@@ -87,32 +103,3 @@ class CYKAnalyzer:
                 )
             print()
 
-    def completed(self, wfst):
-        """Complete the given WFST using grammar
-
-        Args:
-            wfst (list)
-
-        Returns:
-            list: Completed WFST
-
-        """
-
-        numtokens = len(wfst)
-
-        for span in range(2, numtokens):
-            for start in range(numtokens - span):
-                end = start + span
-                for mid in range(start + 1, end):
-                    nt1, nt2 = (
-                        wfst[start][mid]['upos']
-                        if wfst[start][mid]
-                        else None,
-                        wfst[mid][end]['upos']
-                        if wfst[mid][end]
-                        else None
-                    )
-                    for production in self.grammar:
-                        if nt1 and nt2 and (nt1, nt2) == production['prod']:
-                            wfst[start][end] = production
-        return wfst
