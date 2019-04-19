@@ -66,10 +66,15 @@ class CYKAnalyzer:
                 end = start + span
                 for mid in range(start + 1, end):
                     nt1, nt2 = (
-                        wfst[start][mid]['upos']
+                        wfst[start][mid]['PunctType']
+                        if wfst[start][mid]['PunctType']
+                        else wfst[start][mid]['upos']
                         if wfst[start][mid]
                         else None,
-                        wfst[mid][end]['upos']
+
+                        wfst[mid][end]['PunctType']
+                        if wfst[mid][end]['PunctType']
+                        else wfst[mid][end]['upos']
                         if wfst[mid][end]
                         else None
                     )

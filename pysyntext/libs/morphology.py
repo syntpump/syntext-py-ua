@@ -220,11 +220,54 @@ class MorphologyRecognizer:
         """
 
         if strproc.isPunct(token):
-            return {
-                "upos": "PUNCT",
-                "xpos": self.tagparser.stringify({"upos": "PUNCT"}),
-                "name": "Punctuation"
-            }
+            if strproc.isComma(token):
+                return {
+                    "upos": "PUNCT",
+                    "xpos": self.tagparser.stringify({"upos": "PUNCT",
+                                                      "PunctType": "Comm"}),
+                    "name": "Punctuation"
+                }
+            elif strproc.isDash(token):
+                return {
+                    "upos": "PUNCT",
+                    "xpos": self.tagparser.stringify({"upos": "PUNCT",
+                                                      "PunctType": "Dash"}),
+                    "name": "Punctuation"
+                }
+            elif strproc.isColon(token):
+                return {
+                    "upos": "PUNCT",
+                    "xpos": self.tagparser.stringify({"upos": "PUNCT",
+                                                      "PunctType": "Colo"}),
+                    "name": "Punctuation"
+                }
+            elif strproc.isSemicolon(token):
+                return {
+                    "upos": "PUNCT",
+                    "xpos": self.tagparser.stringify({"upos": "PUNCT",
+                                                      "PunctType": "Semi"}),
+                    "name": "Punctuation"
+                }
+            elif strproc.isLeftBracket(token):
+                return {
+                    "upos": "PUNCT",
+                    "xpos": self.tagparser.stringify({"upos": "PUNCT",
+                                                      "PunctType": "LBra"}),
+                    "name": "Punctuation"
+                }
+            elif strproc.isRightBracket(token):
+                return {
+                    "upos": "PUNCT",
+                    "xpos": self.tagparser.stringify({"upos": "PUNCT",
+                                                      "PunctType": "RBra"}),
+                    "name": "Punctuation"
+                }
+            else:
+                return {
+                    "upos": "PUNCT",
+                    "xpos": self.tagparser.stringify({"upos": "PUNCT"}),
+                    "name": "Punctuation"
+                }
 
         if strproc.isSym(token):
             return {
