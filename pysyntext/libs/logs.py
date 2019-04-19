@@ -79,7 +79,7 @@ class Logger:
             return
 
         try:
-           print(string, end="", file=self.fp)
+            print(string, end="", file=self.fp)
         except UnicodeEncodeError:
             print("(encoding error occured here.)", file=self.fp)
 
