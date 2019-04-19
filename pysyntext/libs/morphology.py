@@ -2,7 +2,7 @@
 appropriate rule in DB and returns you the result.
 """
 
-from .arrproc import isSupsetTo
+from libs.arrproc import isSupsetTo
 import libs.strproc as strproc
 
 
@@ -146,7 +146,9 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token, withApplier=True, showDB=False):
+    def recognize(
+        self, token, withApplier=True, showDB=False, applySpecial=True
+    ):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
@@ -156,6 +158,7 @@ class MorphologyRecognizer:
                 This will throw an error, if self.applier is not defined.
             showDB (bool): If True, then function will also return result
                 without applier.
+            applySpecial (bool): Avoid making DB requests for punctuation.
 
         Returns:
             dict: A rule as it stored in DB.
@@ -171,10 +174,11 @@ class MorphologyRecognizer:
 
         token = token.lower()
 
-        special = self.recognizeSpecial(token)
-        if special:
-            return special if withApplier else [special]
-        del special
+        if applySpecial:
+            special = self.recognizeSpecial(token)
+            if special:
+                return special if withApplier else [special]
+            del special
 
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]
         query = None  # Response from DB

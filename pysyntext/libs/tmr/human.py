@@ -1,15 +1,15 @@
 """HumanTrainer train class, child of MoprhologyRecognizeTrainer
 """
 
-from ..morphtrain import MorphologyRecognizeTrainer
+from libs.morphtrain import MorphologyRecognizeTrainer
 
-from libs.morphology import MorphologyRecognizer
+import json
+from bson import ObjectId
 from importlib import import_module
+from libs.morphology import MorphologyRecognizer
 from libs.arrproc import unduplicate, keyExtract
 from libs.ui import expect
 from pprint import pprint
-from bson import ObjectId
-import json
 
 
 class HumanTrainer(MorphologyRecognizeTrainer):

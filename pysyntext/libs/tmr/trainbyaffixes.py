@@ -1,11 +1,11 @@
 """TrainByAffixes train class, child of MorphologyRecognizeTrainer
 """
 
-from ..morphtrain import MorphologyRecognizeTrainer
+from libs.morphtrain import MorphologyRecognizeTrainer
 
+from difflib import SequenceMatcher
 from libs.arrproc import unduplicate, keyExtract, reorder
 from libs.strproc import groupEndings
-from difflib import SequenceMatcher
 
 
 class TrainByAffixes(MorphologyRecognizeTrainer):

@@ -5,7 +5,7 @@ with open("README.md", encoding="utf-8") as fp:
 
 setuptools.setup(
     name="pysyntext",
-    version="0.2",
+    version="0.2.3",
     description="Syntext NLP project",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -25,6 +25,7 @@ setuptools.setup(
     ],
     keywords="nlp",
     packages=setuptools.find_packages(),
+    package_data={"pysyntext": ["libs/ud/*.json", "*doc.md"]},
     python_requires=">3",
     project_urls={
         "Syntpump on GitHub": "https://github.com/syntpump"
