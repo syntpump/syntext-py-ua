@@ -22,21 +22,9 @@ class CYKAnalyzer:
         # they have correct structure.
         self.grammar = [doc for doc in collection.find({})]
 
-        # self.grammar = [
-
-        #     {'upos': 'NP', 'prod': ('ADJ', 'NOUN')},
-
-        #     {'upos': 'VP', 'prod': ('VERB', 'PRON')},
-        #     {'upos': 'VP', 'prod': ('VERB', 'NOUN')},
-
-        #     {'upos': 'S', 'prod': ('NOUN', 'VERB')},
-        #     {'upos': 'S', 'prod': ('NP', 'VERB')},
-        #     {'upos': 'S', 'prod': ('NOUN', 'VP')},
-        #     {'upos': 'S', 'prod': ('NP', 'VP')},
-
-        #     # more to come
-
-        # ]
+        for g in self.grammar:
+            g['prod'] = tuple(g['prod'])
+            print (g['prod'])
 
     def wfst_of(self, sentence):
         """Create and complete a Well-Formed Substring Table (2-dimensional list of
@@ -66,15 +54,16 @@ class CYKAnalyzer:
                 end = start + span
                 for mid in range(start + 1, end):
                     nt1, nt2 = (
-                        wfst[start][mid]['PunctType']
-                        if wfst[start][mid]['PunctType']
-                        else wfst[start][mid]['upos']
+
+                        (wfst[start][mid]['PunctType']
+                        if 'PunctType' in wfst[start][mid]
+                        else wfst[start][mid]['upos'])
                         if wfst[start][mid]
                         else None,
 
-                        wfst[mid][end]['PunctType']
-                        if wfst[mid][end]['PunctType']
-                        else wfst[mid][end]['upos']
+                        (wfst[mid][end]['PunctType']
+                        if 'PunctType' in wfst[mid][end]
+                        else wfst[mid][end]['upos'])
                         if wfst[mid][end]
                         else None
                     )
@@ -82,6 +71,7 @@ class CYKAnalyzer:
                         if nt1 and nt2 and (nt1, nt2) == production['prod']:
                             wfst[start][end] = production
         return wfst
+
 
     def display(self, wfst):
         """Print the given WFST
