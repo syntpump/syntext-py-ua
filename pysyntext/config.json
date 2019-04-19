@@ -17,7 +17,7 @@
 		},
 		"priorityList": {
 			"object": "jsonfp",
-			"address": "dominations.json"
+			"address": "/dominations.json"
 		},
 		"applierFunc": {
 			"object": "function",
