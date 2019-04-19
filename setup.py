@@ -25,6 +25,7 @@ setuptools.setup(
     ],
     keywords="nlp",
     packages=setuptools.find_packages(),
+    package_data={"pysyntext": ["libs/ud/*.json", "*doc.md"]},
     python_requires=">3",
     project_urls={
         "Syntpump on GitHub": "https://github.com/syntpump"
