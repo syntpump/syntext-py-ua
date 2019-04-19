@@ -131,7 +131,7 @@ class UDTParser:
         #  First letter of tag is POS name
         tag = self.data["poses"][props.pop("upos")]
 
-        for key, value in props.items():
+        for key, value in sorted(props.items()):
             block = self.data["properties"][key]
             tag += block["name"]
             if "props" in block and value in block["props"]:
@@ -140,6 +140,20 @@ class UDTParser:
                 tag += value.lower()
 
         return tag
+
+    def repair(self, tag: str) -> str:
+        """Takes the tag, parse it and stringify again. It might be helpful if
+        tag was created from unsorted dictionary.
+
+        Args:
+            tag (str): UDT tag.
+
+        Returns:
+            str: Repaired tag.
+
+        """
+
+        return self.stringify(self.parse(tag))
 
 
 class IncorrectTag(Exception):
