@@ -27,7 +27,7 @@ Example:
 import os
 import json
 from textwrap import wrap
-from ..arrproc import findIn
+from libs.arrproc import findIn
 
 
 class UDTParser:

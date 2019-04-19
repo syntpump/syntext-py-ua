@@ -1,8 +1,8 @@
 """Module for training CCMR.
 """
 
-from .ctxmorph import ContextualProcessor
-from .strproc import context
+from libs.ctxmorph import ContextualProcessor
+from libs.strproc import context
 from functools import reduce
 
 

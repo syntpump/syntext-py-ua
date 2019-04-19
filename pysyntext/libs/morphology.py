@@ -2,7 +2,7 @@
 appropriate rule in DB and returns you the result.
 """
 
-from .arrproc import isSupsetTo
+from libs.arrproc import isSupsetTo
 import libs.strproc as strproc
 
 
