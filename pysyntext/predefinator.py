@@ -33,7 +33,7 @@ class Predefinator:
 
         """
 
-        self.fpath = os.path.dirname(fp.name) + "/"
+        self.fpath = os.path.dirname(fp.name)
         self.config = json.load(fp)
 
     def getByPath(self, package, classobj=None, function=None):
