@@ -2,7 +2,7 @@
 appropriate rule in DB and returns you the result.
 """
 
-from .arrproc import isSupsetTo
+from libs.arrproc import isSupsetTo
 import libs.strproc as strproc
 
 
@@ -11,7 +11,8 @@ class MorphologyRecognizer:
     """
 
     def __init__(
-        self, collection, tagparser=None, priorityList=None, applierFunc=None
+        self, collection, tagparser=None, priorityList=None, applierFunc=None,
+        applySpecial=True
     ):
         """Init the recognizer with specified db connection.
 
@@ -27,6 +28,7 @@ class MorphologyRecognizer:
                 extract element you're really need. You can also use a static
                 method selectFirst() from this class to select the first
                 rule from the list.
+            applySpecial (bool): Avoid making DB requests for punctuation.
 
         applierFunc Args:
             list: List of rules from DB.
@@ -60,6 +62,7 @@ class MorphologyRecognizer:
         self.collection = collection
         self.tagparser = tagparser
         self.applier = applierFunc
+        self.applySpecial = applySpecial
 
     def getRulesFor(self, token):
         """Guess all the rules that can be applied to this token.
@@ -146,7 +149,9 @@ class MorphologyRecognizer:
             })
         )
 
-    def recognize(self, token, withApplier=True, showDB=False):
+    def recognize(
+        self, token, withApplier=True, showDB=False
+    ):
         """Apply exceptions, static and rules searching in order to guess XPOS
         of the given token.
 
@@ -156,6 +161,7 @@ class MorphologyRecognizer:
                 This will throw an error, if self.applier is not defined.
             showDB (bool): If True, then function will also return result
                 without applier.
+            applySpecial (bool): Avoid making DB requests for punctuation.
 
         Returns:
             dict: A rule as it stored in DB.
@@ -171,10 +177,11 @@ class MorphologyRecognizer:
 
         token = token.lower()
 
-        special = self.recognizeSpecial(token)
-        if special:
-            return special if withApplier else [special]
-        del special
+        if self.applySpecial:
+            special = self.recognizeSpecial(token)
+            if special:
+                return special if withApplier else [special]
+            del special
 
         funcs = [self.getExceptions, self.getStatic, self.getRulesFor]
         query = None  # Response from DB

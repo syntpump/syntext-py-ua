@@ -5,9 +5,9 @@ To perform reading, init the class you need and pass the path to file. You'll
 be given access to nextLine() and nextSentence() methods.
 """
 
-from ..gc import GCReader
-from .mte import MTEParser
-from .udt import UDTParser
+from libs.gc import GCReader
+from libs.ud.mte import MTEParser
+from libs.ud.udt import UDTParser
 
 
 class ConlluReader(GCReader):

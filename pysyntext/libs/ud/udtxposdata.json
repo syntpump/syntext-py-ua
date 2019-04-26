@@ -347,8 +347,8 @@
 		"PART": "a",
 		"PRON": "r",
 		"PROPN": "o",
-		"PUNCT": "p",
-		"SCONJ": "j",
+		"PUNCT": "u",
+		"SCONJ": "q",
 		"SYM": "s",
 		"VERB": "v",
 		"X": "x"	

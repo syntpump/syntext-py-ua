@@ -1,9 +1,16 @@
 """Use this library to initialize any class defined in config.json.
 """
 
-import json
 import os
+import sys
+import json
 from importlib import import_module
+
+
+sys.path.append(
+    os.path.dirname(
+        os.path.realpath(
+            __file__)))
 
 
 class Predefinator:
@@ -12,8 +19,11 @@ class Predefinator:
 
     Properties:
         config (dict): Configurations.
+        MODULE_NAME (str): Name of module to import classes from.
 
     """
+
+    MODULE_NAME = "pysyntext"
 
     def __init__(self, fp):
         """Reads configs from passed fp and remember it.
@@ -23,6 +33,7 @@ class Predefinator:
 
         """
 
+        self.fpath = os.path.dirname(fp.name)
         self.config = json.load(fp)
 
     def getByPath(self, package, classobj=None, function=None):
@@ -42,7 +53,7 @@ class Predefinator:
 
         """
 
-        obj = import_module(package)
+        obj = import_module(self.MODULE_NAME + "." + package)
 
         if not classobj:
             return obj
@@ -151,13 +162,13 @@ class Predefinator:
         if obj["object"] == "fp":
             if isinstance(obj["address"], dict):
                 return open(
-                    self.parseObject(obj["address"]),
+                    self.fpath + self.parseObject(obj["address"]),
                     mode=obj["mode"] if "mode" in obj else "r",
                     encoding="utf-8"
                 )
 
             return open(
-                obj["address"],
+                self.fpath + obj["address"],
                 mode=obj["mode"] if "mode" in obj else "r",
                 encoding="utf-8"
             )
@@ -166,7 +177,7 @@ class Predefinator:
             if isinstance(obj["address"], dict):
                 return json.load(
                     open(
-                        self.parseObject(obj["address"]),
+                        self.fpath + self.parseObject(obj["address"]),
                         mode=obj["mode"] if "mode" in obj else "r",
                         encoding="utf-8"
                     )
@@ -174,7 +185,7 @@ class Predefinator:
 
             return json.load(
                 open(
-                    obj["address"],
+                    self.fpath + obj["address"],
                     mode=obj["mode"] if "mode" in obj else "r",
                     encoding="utf-8"
                 )

@@ -17,12 +17,13 @@
 		},
 		"priorityList": {
 			"object": "jsonfp",
-			"address": "dominations.json"
+			"address": "/dominations.json"
 		},
 		"applierFunc": {
 			"object": "function",
 			"name": "libs.morphology,MorphologyRecognizer,selectByEnding"
-		}
+		},
+		"applySpecial": false
 	},
 	"ContextualProcessor": {
 		"$location": "libs.ctxmorph",
