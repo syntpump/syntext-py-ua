@@ -22,9 +22,8 @@ class CYKAnalyzer:
         # they have correct structure.
         self.grammar = [doc for doc in collection.find({})]
 
-        for g in self.grammar:
-            g['prod'] = tuple(g['prod'])
-            print (g['prod'])
+        for rule in self.grammar:
+            rule['prod'] = tuple(rule['prod'])
 
     def wfst_of(self, sentence):
         """Create and complete a Well-Formed Substring Table (2-dimensional list of
@@ -41,11 +40,11 @@ class CYKAnalyzer:
         tokens = self.ctx.tagged(sentence)
         numtokens = len(tokens)
 
-        wfst = [[None for i in range(numtokens + 1)]
+        wfst = [[[] for i in range(numtokens + 1)]
                 for j in range(numtokens + 1)]
 
         for i in range(numtokens):
-            wfst[i][i + 1] = tokens[i]
+            wfst[i][i + 1].append(tokens[i])
 
         numtokens += 1
 
@@ -53,25 +52,19 @@ class CYKAnalyzer:
             for start in range(numtokens - span):
                 end = start + span
                 for mid in range(start + 1, end):
-                    nt1, nt2 = (
 
-                        (wfst[start][mid]['PunctType']
-                        if 'PunctType' in wfst[start][mid]
-                        else wfst[start][mid]['upos'])
-                        if wfst[start][mid]
-                        else None,
+                    possible_productions = [
+                        (
+                            a['PunctType'] if 'PunctType' in a else a['upos'],
+                            b['PunctType'] if 'PunctType' in b else b['upos']
+                        ) for a in wfst[start][mid] for b in wfst[mid][end]
+                    ]
 
-                        (wfst[mid][end]['PunctType']
-                        if 'PunctType' in wfst[mid][end]
-                        else wfst[mid][end]['upos'])
-                        if wfst[mid][end]
-                        else None
-                    )
-                    for production in self.grammar:
-                        if nt1 and nt2 and (nt1, nt2) == production['prod']:
-                            wfst[start][end] = production
+                    for rule in self.grammar:
+                        if rule['prod'] in possible_productions:
+                            wfst[start][end].append(rule)
+
         return wfst
-
 
     def display(self, wfst):
         """Print the given WFST
@@ -91,7 +84,7 @@ class CYKAnalyzer:
             for j in range(1, len(wfst)):
                 print(
                     "%-5s" % (
-                        wfst[i][j]['upos']
+                        wfst[i][j][0]['upos']
                         if wfst[i][j]
                         else '.'),
                     end=''
