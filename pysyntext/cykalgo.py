@@ -1,11 +1,9 @@
-"""Contains a class implementing the CYK algorithm.
+"""Contains a class which implements the CYK algorithm.
 """
 
 
-class CYKProcessingError(Exception):
-
-    def __init__(self, message):
-        self.message = message
+class NotTaggedException(Exception):
+    pass
 
 
 class CYKAnalyzer:
@@ -23,15 +21,13 @@ class CYKAnalyzer:
 
         """
         self.ctx = ctx
+        self.grammar = list()
 
-        # This will download all the rules from DB to this class. Assume, that
-        # they have correct structure.
-        self.grammar = [doc for doc in collection.find({})]
+        for rule in collection.find({}):
+            rule["prod"] = tuple(rule["prod"])
+            self.grammar.append(rule)
 
-        for rule in self.grammar:
-            rule['prod'] = tuple(rule['prod'])
-
-    def wfst_of(self, sentence):
+    def wfst(self, sentence):
         """Create and complete a Well-Formed Substring Table
         (2-dimensional list of used by the algorithm).
 
@@ -42,42 +38,62 @@ class CYKAnalyzer:
             list: Completed WFST.
 
         Raises:
-            CYKProcessingError: There are untagged words in the input.
+            NotTaggedException: There are untagged words in the input.
 
         """
 
+        def getFeature(token):
+            return (
+                token["PunctType"]
+                if "PunctType" in token
+                else token["upos"]
+            )
+
+        def isAppliable(rule):
+            return rule["prod"] == (
+                getFeature(left["pos"]),
+                getFeature(right["pos"])
+            )
+
         tokens = self.ctx.tagged(sentence)
-        numtokens = len(tokens)
+        size = len(tokens)
 
-        wfst = [[[] for i in range(numtokens + 1)]
-                for j in range(numtokens + 1)]
+        wfst = [
+            [
+                [] for _ in range(size + 1)
+            ] for _ in range(size + 1)
+        ]
 
-        for i in range(numtokens):
-            if 'upos' in tokens[i]:
-                wfst[i][i + 1].append({'pos': tokens[i],
-                                       'children': [None, None]})
-            else:
-                raise CYKProcessingError(
+        for i, token in enumerate(tokens):
+
+            if "upos" not in token:
+                raise NotTaggedException(
                     "Some of the words in the input are not tagged.")
 
-        numtokens += 1
+            wfst[i][i + 1].append({
+                "pos": token,
+                "children": [None] * 2
+            })
 
-        for span in range(2, numtokens):
-            for start in range(numtokens - span):
+        size += 1
+
+        for span in range(2, size):
+            for start in range(size - span):
                 end = start + span
                 for mid in range(start + 1, end):
 
-                    for left in range(len(wfst[start][mid])):
-                        for right in range(len(wfst[mid][end])):
-                            for rule in self.grammar:
-                                if rule['prod'] == (wfst[start][mid][left]['pos']['PunctType'] if 'PunctType' in wfst[start][mid][left]['pos'] else wfst[start][mid][left]['pos']['upos'], wfst[mid][end][right]['pos']['PunctType'] if 'PunctType' in wfst[mid][end][right]['pos'] else wfst[mid][end][right]['pos']['upos']):
-                                    wfst[start][end].append(
-                                        {'pos': rule, 'children': [wfst[start][mid][left], wfst[mid][end][right]]})
+                    for left, right in zip(wfst[start][mid], wfst[mid][end]):
+
+                        for rule in filter(isAppliable, self.grammar):
+                            wfst[start][end].append({
+                                'pos': rule,
+                                'children': [left, right]
+                            })
 
         return wfst
 
     def display(self, wfst):
-        """Print the given WFST
+        """Print the given WFST.
 
         Args:
             wfst (list)
@@ -111,18 +127,16 @@ class CYKAnalyzer:
             list: Syntax tree of the sentence in WFST.
 
         Raises:
-            CYKProcessingError: Given WFST is not fully completed.
+            NotTaggedException: Given WFST is not fully completed.
 
         """
 
         if len(wfst[0][len(wfst) - 1]) < 1:
-            raise CYKProcessingError(
+            raise NotTaggedException(
                 "The sentence hasn't been processed completely.")
 
         tree = []
-        buf = []
-
-        buf.append(wfst[0][len(wfst) - 1][0])
+        buf = [wfst[0][len(wfst) - 1][0]]
 
         count = 1
         nextCount = 0
@@ -151,13 +165,10 @@ class CYKAnalyzer:
                 count -= 1
                 index += 1
 
-            if node and node['children'][0]:
-                buf.append(node['children'][0])
-                nextCount += 1
-
-            if node and node['children'][1]:
-                buf.append(node['children'][1])
-                nextCount += 1
+                for i in [0, 1]:
+                    if node['children'][i]:
+                        buf.append(node['children'][i])
+                        nextCount += 1
 
             if count == 0:
                 count = nextCount
