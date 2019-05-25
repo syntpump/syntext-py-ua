@@ -25,13 +25,13 @@ class CYKAnalyzer:
 
         """
         self.ctx = ctx
+        self.grammar = list()
 
         # This will download all the rules from DB to this class. Assume, that
         # they have correct structure.
-        self.grammar = [doc for doc in collection.find({})]
-
-        for rule in self.grammar:
-            rule['prod'] = tuple(rule['prod'])
+        for rule in collection.find({}):
+            rule["prod"] = tuple(rule["prod"])
+            self.grammar.append(rule)
 
     def wfst_of(self, sentence):
         """Create and complete a Well-Formed Substring Table (2-dimensional list of
@@ -48,11 +48,15 @@ class CYKAnalyzer:
         tokens = self.ctx.tagged(sentence)
         numtokens = len(tokens)
 
-        wfst = [[[] for i in range(numtokens + 1)]
-                for j in range(numtokens + 1)]
+        wfst = [
+            [
+                [] for _ in range(numtokens + 1)
+            ] for _ in range(numtokens + 1)
+        ]
 
+        # Place tagged tokens onto the diagonal
         for i in range(numtokens):
-            wfst[i][i + 1].append({'pos': tokens[i], 'linksTo': [None, None]})
+            wfst[i][i + 1].append({"pos": tokens[i]})
 
         numtokens += 1
 
