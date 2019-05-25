@@ -1,8 +1,6 @@
 """Contains a class implementing the CYK algorithm.
 """
 
-from pprint import pprint as pp
-
 
 class CYKProcessingError(Exception):
 
@@ -34,14 +32,17 @@ class CYKAnalyzer:
             rule['prod'] = tuple(rule['prod'])
 
     def wfst_of(self, sentence):
-        """Create and complete a Well-Formed Substring Table (2-dimensional list of
-        dictionaries and chars used by the algorithm).
+        """Create and complete a Well-Formed Substring Table
+        (2-dimensional list of used by the algorithm).
 
         Args:
             sentence (str)
 
         Returns:
             list: Completed WFST.
+
+        Raises:
+            CYKProcessingError: There are untagged words in the input.
 
         """
 
@@ -52,7 +53,12 @@ class CYKAnalyzer:
                 for j in range(numtokens + 1)]
 
         for i in range(numtokens):
-            wfst[i][i + 1].append({'pos': tokens[i], 'children': [None, None]})
+            if 'upos' in tokens[i]:
+                wfst[i][i + 1].append({'pos': tokens[i],
+                                       'children': [None, None]})
+            else:
+                raise CYKProcessingError(
+                    "Some of the words in the input are not tagged.")
 
         numtokens += 1
 
@@ -65,7 +71,8 @@ class CYKAnalyzer:
                         for right in range(len(wfst[mid][end])):
                             for rule in self.grammar:
                                 if rule['prod'] == (wfst[start][mid][left]['pos']['PunctType'] if 'PunctType' in wfst[start][mid][left]['pos'] else wfst[start][mid][left]['pos']['upos'], wfst[mid][end][right]['pos']['PunctType'] if 'PunctType' in wfst[mid][end][right]['pos'] else wfst[mid][end][right]['pos']['upos']):
-                                    wfst[start][end].append({'pos': rule, 'children': [wfst[start][mid][left], wfst[mid][end][right]]})
+                                    wfst[start][end].append(
+                                        {'pos': rule, 'children': [wfst[start][mid][left], wfst[mid][end][right]]})
 
         return wfst
 
@@ -95,26 +102,52 @@ class CYKAnalyzer:
             print()
 
     def treefy(self, wfst):
+        """Get the syntax tree from completed WFST
+
+        Args:
+            wfst (list)
+
+        Returns:
+            list: Syntax tree of the sentence in WFST.
+
+        Raises:
+            CYKProcessingError: Given WFST is not fully completed.
+
+        """
 
         if len(wfst[0][len(wfst) - 1]) < 1:
             raise CYKProcessingError(
-                "The sentence hasn't been processed completely")
+                "The sentence hasn't been processed completely.")
 
-        output = []
+        tree = []
         buf = []
+
         buf.append(wfst[0][len(wfst) - 1][0])
+
         count = 1
         nextCount = 0
 
         index = 0
+        link_index = 0
 
         while count > 0:
 
             node = buf.pop(0)
 
             if node:
-                output.append({'id': index, 'word': node['pos']['word'], 'tag': 'T', 'morph': node['pos']} if 'word' in node['pos'] else {
-                              'id': index, 'tag': node['pos']['upos'], 'linksTo': [2 * index + 1, 2 * index + 2]})
+                if 'word' in node['pos']:
+                    tree.append({'id': index,
+                                 'word': node['pos']['word'],
+                                 'tag': 'T',
+                                 'morph': node['pos']})
+
+                else:
+                    tree.append({'id': index,
+                                 'tag': node['pos']['upos'],
+                                 'linksTo': [2 * link_index + 1,
+                                             2 * link_index + 2]})
+                    link_index += 1
+
                 count -= 1
                 index += 1
 
@@ -130,4 +163,4 @@ class CYKAnalyzer:
                 count = nextCount
                 nextCount = 0
 
-        pp(output)
+        return tree
