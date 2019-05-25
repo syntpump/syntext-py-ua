@@ -52,7 +52,7 @@ class CYKAnalyzer:
                 for j in range(numtokens + 1)]
 
         for i in range(numtokens):
-            wfst[i][i + 1].append({'pos': tokens[i], 'linksTo': [None, None]})
+            wfst[i][i + 1].append({'pos': tokens[i], 'children': [None, None]})
 
         numtokens += 1
 
@@ -61,17 +61,11 @@ class CYKAnalyzer:
                 end = start + span
                 for mid in range(start + 1, end):
 
-                    possible_productions = [
-                        (
-                            a['pos']['PunctType'] if 'PunctType' in a['pos'] else a['pos']['upos'],
-                            b['pos']['PunctType'] if 'PunctType' in b['pos'] else b['pos']['upos']
-                        ) for a in wfst[start][mid] for b in wfst[mid][end]
-                    ]
-
-                    for rule in self.grammar:
-                        if rule['prod'] in possible_productions:
-                            wfst[start][end].append(
-                                {'pos': rule, 'linksTo': [wfst[start][mid], wfst[mid][end]]})
+                    for left in range(len(wfst[start][mid])):
+                        for right in range(len(wfst[mid][end])):
+                            for rule in self.grammar:
+                                if rule['prod'] == (wfst[start][mid][left]['pos']['PunctType'] if 'PunctType' in wfst[start][mid][left]['pos'] else wfst[start][mid][left]['pos']['upos'], wfst[mid][end][right]['pos']['PunctType'] if 'PunctType' in wfst[mid][end][right]['pos'] else wfst[mid][end][right]['pos']['upos']):
+                                    wfst[start][end].append({'pos': rule, 'children': [wfst[start][mid][left], wfst[mid][end][right]]})
 
         return wfst
 
@@ -124,12 +118,12 @@ class CYKAnalyzer:
                 count -= 1
                 index += 1
 
-            if node and node['linksTo'][0]:
-                buf.append(node['linksTo'][0][0])
+            if node and node['children'][0]:
+                buf.append(node['children'][0])
                 nextCount += 1
 
-            if node and node['linksTo'][1]:
-                buf.append(node['linksTo'][1][0])
+            if node and node['children'][1]:
+                buf.append(node['children'][1])
                 nextCount += 1
 
             if count == 0:
