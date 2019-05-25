@@ -65,8 +65,7 @@ class CYKAnalyzer:
                         for right in range(len(wfst[mid][end])):
                             for rule in self.grammar:
                                 if rule['prod'] == (wfst[start][mid][left]['pos']['PunctType'] if 'PunctType' in wfst[start][mid][left]['pos'] else wfst[start][mid][left]['pos']['upos'], wfst[mid][end][right]['pos']['PunctType'] if 'PunctType' in wfst[mid][end][right]['pos'] else wfst[mid][end][right]['pos']['upos']):
-                                    wfst[start][end].append(
-                                        {'pos': rule, 'children': [wfst[start][mid][left], wfst[mid][end][right]]})
+                                    wfst[start][end].append({'pos': rule, 'children': [wfst[start][mid][left], wfst[mid][end][right]]})
 
         return wfst
 
