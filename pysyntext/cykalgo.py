@@ -2,10 +2,6 @@
 """
 
 
-class NotTaggedException(Exception):
-    pass
-
-
 class CYKAnalyzer:
     """Class that uses CYK algorithm to parse sentences with the help of
     context-free grammar.
@@ -132,8 +128,9 @@ class CYKAnalyzer:
         """
 
         if len(wfst[0][len(wfst) - 1]) < 1:
-            raise NotTaggedException(
-                "The sentence hasn't been processed completely.")
+            raise ProcessingException(
+                "CYK was unable to create grammar tree of the given rules and "
+                "tokens.")
 
         tree = []
         buf = [wfst[0][len(wfst) - 1][0]]
@@ -175,3 +172,36 @@ class CYKAnalyzer:
                 nextCount = 0
 
         return tree
+
+    def getGrammar(self, sentence):
+        """Return the syntactic tree of the sentence.
+
+        Args:
+            sentence (str)
+
+        Returns:
+            list: Result. The following format will be used:
+                [
+                    {
+                        "id": int,
+                        "word": str,
+                        "tag": str, ("T" for terminal)
+                        "morph": [...list of morphological properties
+                                  of the word]
+                        "linksTo": [...list of the ids of produced elements,
+                                    if not terminal.]
+                    }
+                ]
+
+        """
+
+        return self.treefy(
+            self.wfst(sentence))
+
+
+class NotTaggedException(Exception):
+    pass
+
+
+class ProcessingException(Exception):
+    pass
