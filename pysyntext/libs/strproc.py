@@ -73,9 +73,9 @@ REFORMALSMILE = r":\w+:"
 
 # Regex for tokens in sentence
 RETOKENS = (
-    fr'(?:\d+{RENUMSEP}\d+)'
-    fr'|(?:{RENUM}*{RECURRENCY}*\d+{RECURRENCY}*{RENUM}*)|'
-    fr'{REPUNCT}|[\w{REDASH}\u0301]+'
+    fr'(?:[\w{REDASH}]+)'
+    fr'|[^\w\s]'
+    fr'|{RECURRENCY}\d+'
 )
 
 # Simplified regex for URLs: protocol, ww?, domain, ...
