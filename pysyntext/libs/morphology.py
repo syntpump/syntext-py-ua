@@ -348,7 +348,7 @@ class MorphologyRecognizer:
                 if len(item) == 1:
                     if string[-len(item):]:
                         return item
-                elif string[:len(item)] == item or string[-len(item):] == item:
+                elif string[-len(item):] == item:
                     return item
 
             return None

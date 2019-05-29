@@ -1,7 +1,7 @@
 """Contains classes for accuracy analysis.
 """
 
-from ilbs.arrproc import keyExtract
+from libs.arrproc import keyExtract
 
 
 class XPOSRecognitionAnalyzer:
