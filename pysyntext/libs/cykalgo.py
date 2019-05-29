@@ -78,13 +78,14 @@ class CYKAnalyzer:
                 end = start + span
                 for mid in range(start + 1, end):
 
-                    for left, right in zip(wfst[start][mid], wfst[mid][end]):
+                    for left in wfst[start][mid]:
+                        for right in wfst[mid][end]:
 
-                        for rule in filter(isAppliable, self.grammar):
-                            wfst[start][end].append({
-                                'pos': rule,
-                                'children': [left, right]
-                            })
+                            for rule in filter(isAppliable, self.grammar):
+                                wfst[start][end].append({
+                                    'pos': rule,
+                                    'children': [left, right]
+                                })
 
         return wfst
 
