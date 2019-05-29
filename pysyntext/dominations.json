@@ -1,92 +1,12 @@
 [
-	{
-		"__what": {
-			"xpos": "Q"
-		},
-		"__replace": {
-			"xpos": "Ccs",
-			"upos": "CCONJ"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Y"
-		},
-		"__replace": {
-			"xpos": "Spsl",
-			"upos": "ADP"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Q"
-		},
-		"__replace": {
-			"xpos": "Spsl",
-			"upos": "ADP"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Ncmpan"
-		},
-		"__replace": {
-			"xpos": "Vmen",
-			"upos": "VERB"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Ncmpan"
-		},
-		"__replace": {
-			"xpos": "Vmpn",
-			"upos": "VERB"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Nc-piy"
-		},
-		"__replace": {
-			"xpos": "Ncmpin",
-			"upos": "NOUN"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Spsi"
-		},
-		"__replace": {
-			"xpos": "Spsa",
-			"upos": "ADP"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Pd--m-sga"
-		},
-		"__replace": {
-			"upos": "Pd--nnsgn",
-			"xpos": "PRON"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Ncmpan"
-		},
-		"__replace": {
-			"upos": "Vmpn",
-			"xpos": "VERB"
-		}
-	},
-	{
-		"__what": {
-			"xpos": "Ncmsan"
-		},
-		"__replace": {
-			"upos": "Ncmsgn",
-			"xpos": "NOUN"
-		}
-	}
+    {
+        "__what": {
+            "upos": "PART",
+            "xpos": "a"
+        },
+        "__replace": {
+            "upos": "CCONJ",
+            "xpos": "c"
+        }
+    }
 ]

@@ -40,8 +40,8 @@ class CYKAnalyzer:
 
         def getFeature(token):
             return (
-                token["PunctType"]
-                if "PunctType" in token
+                token["word"]
+                if token["upos"] == "SYM"
                 else token["upos"]
             )
 
@@ -82,6 +82,7 @@ class CYKAnalyzer:
                         for right in wfst[mid][end]:
 
                             for rule in filter(isAppliable, self.grammar):
+
                                 wfst[start][end].append({
                                     'pos': rule,
                                     'children': [left, right]
