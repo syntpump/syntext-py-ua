@@ -23,7 +23,7 @@ class CYKAnalyzer:
             rule["prod"] = tuple(rule["prod"])
             self.grammar.append(rule)
 
-    def wfst(self, sentence):
+    def wfst(self, sentence, agreement=False):
         """Create and complete a Well-Formed Substring Table
         (2-dimensional list of used by the algorithm).
 
@@ -40,8 +40,8 @@ class CYKAnalyzer:
 
         def getFeature(token):
             return (
-                token["PunctType"]
-                if "PunctType" in token
+                token["word"]
+                if token["upos"] == "SYM"
                 else token["upos"]
             )
 
@@ -73,19 +73,72 @@ class CYKAnalyzer:
 
         size += 1
 
-        for span in range(2, size):
-            for start in range(size - span):
-                end = start + span
-                for mid in range(start + 1, end):
+        if agreement:
 
-                    for left in wfst[start][mid]:
-                        for right in wfst[mid][end]:
+            for span in range(2, size):
+                for start in range(size - span):
+                    end = start + span
+                    for mid in range(start + 1, end):
 
-                            for rule in filter(isAppliable, self.grammar):
-                                wfst[start][end].append({
-                                    'pos': rule,
-                                    'children': [left, right]
-                                })
+                        for left in wfst[start][mid]:
+                            for right in wfst[mid][end]:
+
+                                for rule in filter(isAppliable, self.grammar):
+
+                                    if ('full_agr' in rule and
+                                        ('Gender' in left['pos'] and
+                                         'Gender' in right['pos']) and
+                                        ('Number' in left['pos'] and
+                                         'Number' in right['pos']) and
+                                        ((left['pos']['Gender'] !=
+                                            right['pos']['Gender']) or
+                                            (left['pos']['Number'] !=
+                                                right['pos']['Number']))):
+                                        continue
+
+                                    if ('num_agr' in rule and
+                                        ('Number' in left['pos'] and
+                                         'Number' in right['pos']) and
+                                        (left['pos']['Number'] !=
+                                            right['pos']['Number'])):
+                                        continue
+
+                                    target_rule = rule
+
+                                    if 'Gender' in left['pos']:
+                                        target_rule['Gender'] = left
+                                        ['pos']['Gender']
+                                    elif 'Gender' in right['pos']:
+                                        target_rule['Gender'] = right
+                                        ['pos']['Gender']
+
+                                    if 'Number' in left['pos']:
+                                        target_rule['Number'] = left
+                                        ['pos']['Number']
+                                    elif 'Number' in right['pos']:
+                                        target_rule['Number'] = right
+                                        ['pos']['Number']
+
+                                    wfst[start][end].append({
+                                        'pos': target_rule,
+                                        'children': [left, right]
+                                    })
+
+        else:
+            for span in range(2, size):
+                for start in range(size - span):
+                    end = start + span
+                    for mid in range(start + 1, end):
+
+                        for left in wfst[start][mid]:
+                            for right in wfst[mid][end]:
+
+                                for rule in filter(isAppliable, self.grammar):
+
+                                    wfst[start][end].append({
+                                        'pos': rule,
+                                        'children': [left, right]
+                                    })
 
         return wfst
 
