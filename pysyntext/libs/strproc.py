@@ -489,3 +489,9 @@ def unspace(text):
     else:
         return text
 
+
+def paragraphize(text):
+    return list(
+        filter(
+            lambda line: len(unspace(line)) > 0,
+            text.split("\n")))
