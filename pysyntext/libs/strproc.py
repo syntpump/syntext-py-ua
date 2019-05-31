@@ -510,7 +510,7 @@ def paragraphs(text):
         text (str)
 
     Returns:
-        str
+        iterator
 
     """
 
@@ -526,7 +526,7 @@ def sentences(paragraph):
         paragraph (str)
 
     Returns:
-        str
+        iterator
 
     """
 
