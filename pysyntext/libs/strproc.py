@@ -43,6 +43,13 @@ REAPOSTROPHE = f'\'"’'
 
 # List of all Ukrainian symbols + dashes + apostrophes
 RECYRRUA = rf'[А-ЩЬЮ-щьюяіїґєІЇҐЄ{REDASH}{REAPOSTROPHE}]'
+RECYRRUASMALL = r'[а-яіїґє]'
+
+# The sentence
+RESEN = (
+    rf'.*?(?:{REMARKS}|\.)(?!{RECOMMA}|{RESEMICOLON}|{RECOLON}|'
+    rf'\s*{RECYRRUASMALL})'
+)
 
 # Regex for western smiles
 REWSMILE = (
@@ -461,3 +468,72 @@ def context(sentence, r):
             **contextOf(sentence, r, n=i),
             **{"i": i}
         }
+
+
+def unspace(text):
+    """Replace double (and n-size) spaces with single-space. Replace tabs and
+    other spaces with space symbol.
+
+    Args:
+        text (str)
+
+    Returns:
+        str
+
+    """
+
+    for space in [
+        "\u00a0", "\u1680", "\u180e", "\u2000", "\u2001", "\u2002", "\u2003",
+        "\u2004", "\u2005", "\u2006", "\u2007", "\u2008", "\u2009", "\u200a",
+        "\u200b", "\u202f", "\u205f", "\u3000", "\ufeff"
+    ]:
+        text.replace(space, "\u0020")
+
+    text = re.sub(r"\s+", "\u0020", text)
+
+    if text[0] == "\u0020":
+        text = text[1:]
+
+    if text[len(text) - 1] == "\u0020":
+        text = text[:-1]
+
+    if text == "\u0020":
+        return ""
+    else:
+        return text
+
+
+def paragraphs(text):
+    """Split a given text into paragraphs.
+
+    Args:
+        text (str)
+
+    Returns:
+        iterator
+
+    """
+
+    return filter(
+        lambda line: len(unspace(line)) > 0,
+        text.split("\n"))
+
+
+def sentences(paragraph):
+    """Split a given paragraph into sentences.
+
+    Args:
+        paragraph (str)
+
+    Returns:
+        iterator
+
+    """
+
+    global RESEN
+
+    return (
+        unspace(sentence)
+        for sentence
+        in re.findall(RESEN, paragraph)
+    )
