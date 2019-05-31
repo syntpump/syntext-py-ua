@@ -86,15 +86,15 @@ class CYKAnalyzer:
 
                                 agr_rule = rule
 
-                                if 'Gender' in left['agr_pos']:
-                                    agr_rule['Gender'] = left['agr_pos']['Gender']
-                                elif 'Gender' in right['agr_pos']:
+                                if 'Gender' in right['agr_pos']:
                                     agr_rule['Gender'] = right['agr_pos']['Gender']
+                                elif 'Gender' in left['agr_pos']:
+                                    agr_rule['Gender'] = left['agr_pos']['Gender']
 
-                                if 'Number' in left['agr_pos']:
-                                    agr_rule['Number'] = left['agr_pos']['Number']
-                                elif 'Number' in right['agr_pos']:
+                                if 'Number' in right['agr_pos']:
                                     agr_rule['Number'] = right['agr_pos']['Number']
+                                elif 'Number' in left['agr_pos']:
+                                    agr_rule['Number'] = left['agr_pos']['Number']
 
                                 if ('full_agr' in rule and
                                     ('Gender' in left['agr_pos'] and
@@ -122,6 +122,56 @@ class CYKAnalyzer:
 
         return wfst
 
+    def findErrors(self, wfst):
+        """Search for some of agreement errors.
+
+        Args:
+            wfst (list)
+
+        Returns:
+            tuple: Indexes of problematic elements.
+            None: No errors were detected.
+
+        """
+
+        if len(wfst[0][len(wfst) - 1]) < 1:
+            return
+
+        if 'upos' in wfst[0][len(wfst) - 1][0]['agr_pos']:
+            return
+
+        if 'upos' not in wfst[0][len(wfst) - 1][0]['pos']:
+            return
+
+        buf = [wfst[0][len(wfst) - 1][0]]
+
+        count = 1
+        nextCount = 0
+
+        index = 0
+
+        while count > 0:
+
+            node = buf.pop(0)
+
+            if node:
+                if 'upos' in node['agr_pos']:
+                    if node['pos']['upos'] == node['agr_pos']['upos']:
+                        error_indexes = (index, index + 1)
+                        return error_indexes
+
+                count -= 1
+                index += 1
+
+                for i in [0, 1]:
+                    if node['children'][i]:
+                        buf.append(node['children'][i])
+                        nextCount += 1
+
+            if count == 0:
+                count = nextCount
+                nextCount = 0
+
     def display(self, wfst):
         """Print the given WFST.
 
@@ -135,13 +185,14 @@ class CYKAnalyzer:
              for i
              in range(1, len(wfst))])
         )
+
         for i in range(len(wfst) - 1):
             print("%d    " % i, end='')
             for j in range(1, len(wfst)):
                 print(
                     "%-5s" % (
                         wfst[i][j][0]['pos']['upos']
-                        if wfst[i][j]
+                        if wfst[i][j] and 'upos' in wfst[i][j][0]['pos']
                         else '.'),
                     end=''
                 )
@@ -154,6 +205,7 @@ class CYKAnalyzer:
              for i
              in range(1, len(wfst))])
         )
+
         for i in range(len(wfst) - 1):
             print("%d    " % i, end='')
             for j in range(1, len(wfst)):
@@ -165,6 +217,12 @@ class CYKAnalyzer:
                     end=''
                 )
             print()
+
+        possible_errors = self.findErrors(wfst)
+
+        if possible_errors:
+            print()
+            print("Possible_errors: ", possible_errors)
 
     def treefy(self, wfst):
         """Get the syntax tree from completed WFST
@@ -201,13 +259,19 @@ class CYKAnalyzer:
             if node:
                 if 'word' in node['pos']:
                     tree.append({'id': index,
-                                 'word': node['pos']['word'],
                                  'tag': 'T',
+                                 'word': node['pos']['word'],
                                  'morph': node['pos']})
 
                 else:
                     tree.append({'id': index,
                                  'tag': node['pos']['upos'],
+                                 'Gender': (node['pos']['Gender'] if
+                                            'Gender' in node['pos'] else
+                                            None),
+                                 'Number': (node['pos']['Number'] if
+                                            'Number' in node['pos'] else
+                                            None),
                                  'linksTo': [2 * link_index + 1,
                                              2 * link_index + 2]})
                     link_index += 1
