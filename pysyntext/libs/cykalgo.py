@@ -23,7 +23,7 @@ class CYKAnalyzer:
             rule["prod"] = tuple(rule["prod"])
             self.grammar.append(rule)
 
-    def wfst(self, sentence, agreement=False):
+    def wfst(self, sentence):
         """Create and complete a Well-Formed Substring Table
         (2-dimensional list of used by the algorithm).
 
@@ -68,77 +68,57 @@ class CYKAnalyzer:
 
             wfst[i][i + 1].append({
                 "pos": token,
+                "agr_pos": token,
                 "children": [None] * 2
             })
 
         size += 1
 
-        if agreement:
+        for span in range(2, size):
+            for start in range(size - span):
+                end = start + span
+                for mid in range(start + 1, end):
 
-            for span in range(2, size):
-                for start in range(size - span):
-                    end = start + span
-                    for mid in range(start + 1, end):
+                    for left in wfst[start][mid]:
+                        for right in wfst[mid][end]:
 
-                        for left in wfst[start][mid]:
-                            for right in wfst[mid][end]:
+                            for rule in filter(isAppliable, self.grammar):
 
-                                for rule in filter(isAppliable, self.grammar):
+                                agr_rule = rule
 
-                                    if ('full_agr' in rule and
-                                        ('Gender' in left['pos'] and
-                                         'Gender' in right['pos']) and
-                                        ('Number' in left['pos'] and
-                                         'Number' in right['pos']) and
-                                        ((left['pos']['Gender'] !=
-                                            right['pos']['Gender']) or
-                                            (left['pos']['Number'] !=
-                                                right['pos']['Number']))):
-                                        continue
+                                if 'Gender' in left['agr_pos']:
+                                    agr_rule['Gender'] = left['agr_pos']['Gender']
+                                elif 'Gender' in right['agr_pos']:
+                                    agr_rule['Gender'] = right['agr_pos']['Gender']
 
-                                    if ('num_agr' in rule and
-                                        ('Number' in left['pos'] and
-                                         'Number' in right['pos']) and
-                                        (left['pos']['Number'] !=
-                                            right['pos']['Number'])):
-                                        continue
+                                if 'Number' in left['agr_pos']:
+                                    agr_rule['Number'] = left['agr_pos']['Number']
+                                elif 'Number' in right['agr_pos']:
+                                    agr_rule['Number'] = right['agr_pos']['Number']
 
-                                    target_rule = rule
+                                if ('full_agr' in rule and
+                                    ('Gender' in left['agr_pos'] and
+                                     'Gender' in right['agr_pos']) and
+                                    ('Number' in left['agr_pos'] and
+                                     'Number' in right['agr_pos']) and
+                                    ((left['agr_pos']['Gender'] !=
+                                        right['agr_pos']['Gender']) or
+                                        (left['agr_pos']['Number'] !=
+                                            right['agr_pos']['Number']))):
+                                    agr_rule = dict()
 
-                                    if 'Gender' in left['pos']:
-                                        target_rule['Gender'] = left
-                                        ['pos']['Gender']
-                                    elif 'Gender' in right['pos']:
-                                        target_rule['Gender'] = right
-                                        ['pos']['Gender']
+                                if ('num_agr' in rule and
+                                    ('Number' in left['agr_pos'] and
+                                     'Number' in right['agr_pos']) and
+                                    (left['agr_pos']['Number'] !=
+                                        right['agr_pos']['Number'])):
+                                    agr_rule = dict()
 
-                                    if 'Number' in left['pos']:
-                                        target_rule['Number'] = left
-                                        ['pos']['Number']
-                                    elif 'Number' in right['pos']:
-                                        target_rule['Number'] = right
-                                        ['pos']['Number']
-
-                                    wfst[start][end].append({
-                                        'pos': target_rule,
-                                        'children': [left, right]
-                                    })
-
-        else:
-            for span in range(2, size):
-                for start in range(size - span):
-                    end = start + span
-                    for mid in range(start + 1, end):
-
-                        for left in wfst[start][mid]:
-                            for right in wfst[mid][end]:
-
-                                for rule in filter(isAppliable, self.grammar):
-
-                                    wfst[start][end].append({
-                                        'pos': rule,
-                                        'children': [left, right]
-                                    })
+                                wfst[start][end].append({
+                                    'pos': rule,
+                                    'agr_pos': agr_rule,
+                                    'children': [left, right]
+                                })
 
         return wfst
 
@@ -150,7 +130,7 @@ class CYKAnalyzer:
 
         """
 
-        print('\nWFST ' + ' '.join(
+        print('\nNAGR ' + ' '.join(
             [("%-4d" % i)
              for i
              in range(1, len(wfst))])
@@ -162,6 +142,25 @@ class CYKAnalyzer:
                     "%-5s" % (
                         wfst[i][j][0]['pos']['upos']
                         if wfst[i][j]
+                        else '.'),
+                    end=''
+                )
+            print()
+
+        print ()
+
+        print('\nWAGR ' + ' '.join(
+            [("%-4d" % i)
+             for i
+             in range(1, len(wfst))])
+        )
+        for i in range(len(wfst) - 1):
+            print("%d    " % i, end='')
+            for j in range(1, len(wfst)):
+                print(
+                    "%-5s" % (
+                        wfst[i][j][0]['agr_pos']['upos']
+                        if wfst[i][j] and 'upos' in wfst[i][j][0]['agr_pos']
                         else '.'),
                     end=''
                 )
