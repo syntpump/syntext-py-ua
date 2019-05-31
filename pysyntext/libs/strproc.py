@@ -461,3 +461,31 @@ def context(sentence, r):
             **contextOf(sentence, r, n=i),
             **{"i": i}
         }
+
+
+def unspace(text):
+    """Replace double (and n-size) spaces with single-space. Replace tabs and
+    other spaces with space symbol.
+
+    Args:
+        text (str)
+
+    Returns:
+        str
+
+    """
+
+    for space in [
+        "\u00a0", "\u1680", "\u180e", "\u2000", "\u2001", "\u2002", "\u2003",
+        "\u2004", "\u2005", "\u2006", "\u2007", "\u2008", "\u2009", "\u200a",
+        "\u200b", "\u202f", "\u205f", "\u3000", "\ufeff"
+    ]:
+        text.replace(space, "\u0020")
+
+    text = re.sub(r"\s+", "\u0020", text)
+
+    if text == "\u0020":
+        return ""
+    else:
+        return text
+
