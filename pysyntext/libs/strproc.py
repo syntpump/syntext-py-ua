@@ -43,6 +43,13 @@ REAPOSTROPHE = f'\'"’'
 
 # List of all Ukrainian symbols + dashes + apostrophes
 RECYRRUA = rf'[А-ЩЬЮ-щьюяіїґєІЇҐЄ{REDASH}{REAPOSTROPHE}]'
+RECYRRUASMALL = r'[а-яіїґє]'
+
+# The sentence
+RESEN = (
+    rf'.*?(?:{REMARKS}|\.)(?!{RECOMMA}|{RESEMICOLON}|{RECOLON}|'
+    rf'\s*{RECYRRUASMALL})'
+)
 
 # Regex for western smiles
 REWSMILE = (
@@ -484,14 +491,49 @@ def unspace(text):
 
     text = re.sub(r"\s+", "\u0020", text)
 
+    if text[0] == "\u0020":
+        text = text[1:]
+
+    if text[len(text) - 1] == "\u0020":
+        text = text[:-1]
+
     if text == "\u0020":
         return ""
     else:
         return text
 
 
-def paragraphize(text):
-    return list(
-        filter(
-            lambda line: len(unspace(line)) > 0,
-            text.split("\n")))
+def paragraphs(text):
+    """Split a given text into paragraphs.
+
+    Args:
+        text (str)
+
+    Returns:
+        str
+
+    """
+
+    return filter(
+        lambda line: len(unspace(line)) > 0,
+        text.split("\n"))
+
+
+def sentences(paragraph):
+    """Split a given paragraph into sentences.
+
+    Args:
+        paragraph (str)
+
+    Returns:
+        str
+
+    """
+
+    global RESEN
+
+    return (
+        unspace(sentence)
+        for sentence
+        in re.findall(RESEN, paragraph)
+    )
